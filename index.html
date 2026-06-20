@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#0F6E56" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="영어템플릿" />
+<title>영어 템플릿 암기</title>
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<link rel="icon" href="icons/icon-192.png" />
+<style>
+  :root{
+    --bg: #F1EFE8;
+    --surface: #FFFFFF;
+    --surface-2: #F1EFE8;
+    --border: rgba(44,44,42,0.12);
+    --border-strong: rgba(44,44,42,0.22);
+    --text: #2C2C2A;
+    --text-2: #5F5E5A;
+    --text-3: #888780;
+    --info: #185FA5;
+    --info-bg: #E6F1FB;
+    --info-text: #0C447C;
+    --success: #0F6E56;
+    --success-text: #085041;
+    --success-bg: #E1F5EE;
+    --danger: #A32D2D;
+    --danger-text: #791F1F;
+    --danger-bg: #FCEBEB;
+    --warning: #854F0B;
+    --warning-bg: #FAEEDA;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg: #1C1C1A;
+      --surface: #2C2C2A;
+      --surface-2: #252523;
+      --border: rgba(255,255,255,0.12);
+      --border-strong: rgba(255,255,255,0.22);
+      --text: #F1EFE8;
+      --text-2: #B4B2A9;
+      --text-3: #888780;
+      --info: #85B7EB;
+      --info-bg: #0C447C;
+      --info-text: #E6F1FB;
+      --success: #5DCAA5;
+      --success-text: #E1F5EE;
+      --success-bg: #085041;
+      --danger: #F09595;
+      --danger-text: #FCEBEB;
+      --danger-bg: #791F1F;
+      --warning: #FAC775;
+      --warning-bg: #412402;
+    }
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+  html,body{
+    margin:0; padding:0; background:var(--bg); color:var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    overscroll-behavior-y: none;
+  }
+  body{
+    padding: max(16px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+    min-height: 100vh;
+  }
+  #app{ max-width: 480px; margin: 0 auto; position: relative; }
+
+  h1,h2,h3{ font-weight: 500; margin: 0; }
+  p{ margin: 0; }
+
+  button{
+    font-family: inherit;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    color: var(--text);
+    font-size: 15px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.08s ease;
+  }
+  button:active{ transform: scale(0.98); }
+  button:disabled{ opacity: 0.4; cursor: default; }
+  button:disabled:active{ transform: none; }
+
+  input[type="text"], input[type="number"]{
+    font-family: inherit;
+    width: 100%;
+    height: 40px;
+    padding: 0 12px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 16px;
+  }
+  input:focus{ outline: 2px solid var(--info); outline-offset: -1px; }
+
+  .card{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+  }
+
+  .header{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom: 16px;
+  }
+  .header h1{ font-size: 20px; }
+
+  .tabs{ display:flex; gap:8px; margin-bottom:14px; }
+  .tab-btn{ flex:1; font-weight:500; }
+  .tab-btn.active{ border-color: var(--info); background: var(--info-bg); color: var(--info-text); }
+
+  .muted{ color: var(--text-2); font-size: 13px; }
+  .hint-box{ font-size:12px; color:var(--text-3); margin-bottom:14px; padding:8px 10px; background:var(--surface-2); border-radius:var(--radius-md); }
+
+  .count-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-bottom: 12px; }
+  .count-btn{ font-weight:500; padding: 12px 8px; }
+  .count-btn.active{ border-color: var(--info); background: var(--info-bg); color: var(--info-text); }
+
+  .custom-count-row{ display:flex; gap:8px; align-items:center; margin-bottom: 16px; }
+  .custom-count-row input{ flex:1; }
+
+  .stats-bar{ display:flex; gap:8px; margin-bottom:16px; }
+  .stat{ flex:1; background: var(--surface-2); border-radius: var(--radius-md); padding:10px; text-align:center; }
+  .stat .label{ font-size:11px; color:var(--text-3); }
+  .stat .value{ font-size:20px; font-weight:500; margin-top:2px; }
+
+  .badge{ display:inline-block; font-size:11px; padding:3px 10px; border-radius: var(--radius-md); background: var(--surface-2); color: var(--text-2); margin-bottom:14px; }
+
+  #quizCard{ position:relative; overflow:visible; }
+  #koreanText{ font-size:19px; font-weight:500; line-height:1.5; margin-bottom:8px; min-height:56px; transition:color 0.15s ease; }
+  #hintText{ font-size:15px; font-family: ui-monospace, "SF Mono", monospace; letter-spacing:2px; margin-bottom:10px; display:none; }
+  #hintLabel{ font-size:11px; color:var(--text-3); margin-top:-4px; margin-bottom:10px; display:none; }
+
+  #diffPanel{ display:none; margin-bottom:12px; padding:10px 12px; background: var(--surface-2); border-radius: var(--radius-md); }
+  #diffPanel .row{ font-size:15px; font-family: ui-monospace, "SF Mono", monospace; margin-bottom:4px; }
+  .diff-wrong{ background: var(--danger-bg); color: var(--danger-text); border-radius:2px; }
+  .diff-right{ background: var(--success-bg); color: var(--success-text); border-radius:2px; }
+  .diff-actions{ display:flex; gap:8px; margin-top:10px; }
+  .btn-ok{ color: var(--success); border-color: var(--success); }
+  .btn-ng{ color: var(--danger); border-color: var(--danger); }
+
+  .action-row{ display:flex; gap:8px; }
+  .action-row button{ flex:1; font-weight:500; }
+
+  .footer-hint{ margin-top:10px; font-size:12px; color:var(--text-3); text-align:center; }
+
+  .add-toggle{ display:flex; align-items:center; justify-content:space-between; cursor:pointer; }
+  .add-toggle .title{ font-size:15px; font-weight:500; }
+  .chevron{ transition: transform 0.2s ease; font-size:14px; }
+  .chevron.open{ transform: rotate(180deg); }
+
+  .form-label{ font-size:12px; color:var(--text-2); display:block; margin-bottom:4px; }
+  .form-row{ margin-bottom:10px; }
+
+  .check-row{ display:flex; align-items:center; gap:6px; font-size:13px; margin-bottom:10px; cursor:pointer; }
+  .check-row input{ width:auto; height:auto; }
+
+  .list-row{
+    display:flex; justify-content:space-between; align-items:center; gap:8px;
+    padding:8px 10px; background: var(--surface-2); border-radius: var(--radius-md);
+  }
+  .list-row .text{ font-size:13px; overflow:hidden; flex:1; min-width:0; }
+  .list-row .text .ko{ font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .list-row .text .en{ color: var(--text-2); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .list-row .btns{ display:flex; gap:4px; flex-shrink:0; }
+  .icon-btn{ padding:4px 8px; line-height:1; font-size:16px; }
+  .icon-btn.bookmarked{ color: var(--warning); }
+
+  #fxLayer{ position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:visible; z-index:50; }
+
+  .section-title{ font-size:13px; font-weight:500; margin-bottom:8px; }
+  .empty-state{ font-size:13px; color:var(--text-3); text-align:center; padding:24px 0; }
+
+  .pane{ display:none; }
+  .pane.active{ display:block; }
+
+  .install-banner{
+    display:none; align-items:center; gap:10px; padding:10px 12px; margin-bottom:12px;
+    background: var(--info-bg); color: var(--info-text); border-radius: var(--radius-md); font-size:13px;
+  }
+  .install-banner button{ background:transparent; border:1px solid var(--info-text); color:var(--info-text); font-size:12px; padding:6px 10px; flex-shrink:0; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="install-banner" id="installBanner">
+    <span style="flex:1;">홈 화면에 추가하면 앱처럼 쓸 수 있어요</span>
+    <button id="installBtn">설치</button>
+  </div>
+
+  <!-- ============ SETUP SCREEN ============ -->
+  <div id="setupScreen">
+    <div class="header"><h1>영어 템플릿 암기</h1></div>
+
+    <div class="tabs">
+      <button id="tabQuiz" class="tab-btn active">학습</button>
+      <button id="tabBookmark" class="tab-btn">★ 북마크 (<span id="bookmarkTabCount">0</span>)</button>
+    </div>
+
+    <div id="quizSetupPane" class="pane active">
+      <div class="card" style="margin-bottom:12px;">
+        <h2 style="font-size:16px; margin-bottom:4px;">오늘 몇 문제 풀까요?</h2>
+        <p class="muted" style="margin-bottom:14px;">복습 기한이 지난 카드 중, 임박한 순서로 출제됩니다.</p>
+        <div class="hint-box" id="availInfo"></div>
+
+        <div class="count-grid" id="countOptions"></div>
+        <div class="custom-count-row">
+          <input type="number" id="customCountInput" placeholder="직접 입력" min="1" inputmode="numeric" />
+          <button id="customCountBtn" style="white-space:nowrap;">이 개수로</button>
+        </div>
+        <p class="muted" id="customCountHint" style="margin-bottom:14px;"></p>
+
+        <button id="startBtn" style="width:100%; font-weight:500;">시작하기</button>
+      </div>
+
+      <div class="card">
+        <div class="add-toggle" id="addToggle">
+          <div class="title">+ 카드 추가</div>
+          <span class="chevron" id="addChevron">▾</span>
+        </div>
+        <div id="addForm" style="display:none; margin-top:12px;">
+          <div class="form-row">
+            <label class="form-label">한국어 뜻</label>
+            <input type="text" id="newKo" placeholder="예: 검토 부탁드립니다" />
+          </div>
+          <div class="form-row">
+            <label class="form-label">영어 정답</label>
+            <input type="text" id="newEn" placeholder="예: please review this" />
+          </div>
+          <label class="check-row"><input type="checkbox" id="newBookmark" />추가하면서 북마크하기</label>
+          <button id="addCardBtn" style="width:100%; font-weight:500;">카드 추가하기</button>
+          <p class="muted" id="addFeedback" style="margin-top:8px; min-height:16px;"></p>
+        </div>
+
+        <div style="margin-top:10px;">
+          <div class="section-title">전체 카드 (<span id="cardListCount">0</span>개)</div>
+          <div id="cardList" style="max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="bookmarkPane" class="pane">
+      <div class="card">
+        <h2 style="font-size:15px; margin-bottom:4px;">★ 북마크한 문장</h2>
+        <p class="muted" style="margin-bottom:12px;">오답으로 막혔던 표현이나 직접 표시한 카드 모음</p>
+        <div id="bookmarkList" style="display:flex; flex-direction:column; gap:6px;"></div>
+        <div id="bookmarkEmpty" class="empty-state" style="display:none;">아직 북마크한 문장이 없어요</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ QUIZ SCREEN ============ -->
+  <div id="quizScreen" style="display:none;">
+    <div class="stats-bar">
+      <div class="stat"><div class="label">정답 처리</div><div class="value" id="progressCount">0/0</div></div>
+      <div class="stat"><div class="label">연속 정답</div><div class="value" id="streakCount" style="color:var(--info);">0</div></div>
+      <div class="stat"><div class="label">미처리 남음</div><div class="value" id="remainingCount" style="color:var(--warning);">0</div></div>
+    </div>
+
+    <div class="card" id="quizCard">
+      <div class="badge" id="boxBadge">새 카드</div>
+      <div id="koreanText"></div>
+
+      <div id="hintText"></div>
+      <div id="hintLabel"></div>
+
+      <input type="text" id="answerInput" placeholder="영어로 입력하세요" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="margin-bottom:12px;" />
+
+      <div id="diffPanel">
+        <p class="muted" style="margin-bottom:6px;">오타 가능성 — 직접 판정해주세요 (Enter = 정답)</p>
+        <div class="row" id="diffYour"></div>
+        <div class="row" id="diffAns"></div>
+        <div class="diff-actions">
+          <button id="markCorrectBtn" class="btn-ok">정답으로 처리</button>
+          <button id="markWrongBtn" class="btn-ng">오답으로 처리</button>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button id="checkBtn" style="font-weight:500;">확인</button>
+        <button id="nextBtn" style="display:none; font-weight:500;">다음 →</button>
+      </div>
+
+      <svg id="fxLayer"></svg>
+    </div>
+
+    <div class="footer-hint">Enter로 확인, 다음 카드로 이동</div>
+  </div>
+
+  <!-- ============ DONE SCREEN ============ -->
+  <div id="doneScreen" style="display:none;">
+    <div class="card">
+      <h2 style="font-size:18px; margin-bottom:4px; text-align:center;">세션 완료</h2>
+      <p class="muted" id="doneSummary" style="margin-bottom:16px; text-align:center;"></p>
+
+      <div id="missedWrap" style="display:none;">
+        <div class="section-title" style="border-top:1px solid var(--border); padding-top:14px;">이번에 힘들었던 문장</div>
+        <div id="missedList" style="display:flex; flex-direction:column; gap:6px; margin-bottom:16px;"></div>
+      </div>
+
+      <button id="restartBtn" style="width:100%; font-weight:500;">설정으로 돌아가기</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
