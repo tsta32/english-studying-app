@@ -32,6 +32,12 @@
   var chosenCount = 10;
   var hintLevel = 0;
   var pendingDiff = null;
+  var autoAdvanceToken = 0; // incremented to cancel a pending auto-advance if the user navigates manually
+
+  // all-cards tab state
+  var allCardsEditMode = false;
+  var allCardsSelectedIds = {}; // id -> true
+  var allCardsSearchQuery = '';
   var sessionMissedIds = [];
 
   var settings = { volume: 100, newCardRatio: 5 }; // volume 0-200 (%), newCardRatio: 1 new card per N questions
@@ -200,15 +206,19 @@
   function setTab(which){
     $('quizSetupPane').classList.toggle('active', which==='quiz');
     $('bookmarkPane').classList.toggle('active', which==='bookmark');
+    $('allCardsPane').classList.toggle('active', which==='allCards');
     $('settingsPane').classList.toggle('active', which==='settings');
     $('tabQuiz').classList.toggle('active', which==='quiz');
     $('tabBookmark').classList.toggle('active', which==='bookmark');
+    $('tabAllCards').classList.toggle('active', which==='allCards');
     $('tabSettings').classList.toggle('active', which==='settings');
     if(which === 'bookmark') renderBookmarkList();
+    if(which === 'allCards') renderAllCardsPane();
     if(which === 'settings') renderSettingsPane();
   }
   on('tabQuiz', 'click', function(){ setTab('quiz'); });
   on('tabBookmark', 'click', function(){ setTab('bookmark'); });
+  on('tabAllCards', 'click', function(){ setTab('allCards'); });
   on('tabSettings', 'click', function(){ setTab('settings'); });
 
   // ---------- bookmark + card list rendering ----------
@@ -235,6 +245,142 @@
       listEl.appendChild(row);
     });
   }
+
+  // ---------- "전체 문장" tab: full uncropped list, search, edit/select/delete ----------
+  function renderAllCardsPane(){
+    $('allCardsTabCount').textContent = cards.length;
+    $('allCardsCount').textContent = cards.length;
+
+    var q = allCardsSearchQuery.trim().toLowerCase();
+    var visibleCards = cards.slice().reverse().filter(function(c){
+      if(!q) return true;
+      return c.ko.toLowerCase().indexOf(q) !== -1 || c.en.toLowerCase().indexOf(q) !== -1;
+    });
+
+    var listEl = $('allCardsList');
+    var emptyEl = $('allCardsEmpty');
+    listEl.innerHTML = '';
+
+    if(visibleCards.length === 0){
+      emptyEl.style.display = 'block';
+      emptyEl.textContent = cards.length === 0 ? '저장된 문장이 없어요' : '검색 결과가 없어요';
+    } else {
+      emptyEl.style.display = 'none';
+    }
+
+    visibleCards.forEach(function(c){
+      var status = reviewStatusInfo(c);
+      var row = document.createElement('div');
+      row.className = 'full-card-row' + (allCardsEditMode ? ' edit-mode' : '');
+
+      var checkboxHtml = '<div class="checkbox-wrap"><input type="checkbox" class="select-cb" data-id="'+c.id+'" '+(allCardsSelectedIds[c.id] ? 'checked' : '')+' /></div>';
+      var contentHtml =
+        '<div class="content">' +
+          '<div class="ko">'+escapeHtml(c.ko)+'</div>' +
+          '<div class="en">'+escapeHtml(c.en)+'</div>' +
+          '<div class="meta">' +
+            '<span class="due-tag '+status.cls+'">'+escapeHtml(status.text)+'</span>' +
+            (c.bookmarked ? '<span class="due-tag" style="background:var(--warning-bg); color:var(--warning);">★ 북마크</span>' : '') +
+          '</div>' +
+        '</div>';
+      var rightBtnsHtml = allCardsEditMode ? '' :
+        '<div class="right-btns">' +
+          '<button type="button" class="icon-btn bm-toggle" aria-label="북마크">'+(c.bookmarked?'★':'☆')+'</button>' +
+          '<button type="button" class="icon-btn del-one" aria-label="삭제">🗑</button>' +
+        '</div>';
+
+      row.innerHTML = checkboxHtml + contentHtml + rightBtnsHtml;
+
+      if(allCardsEditMode){
+        var cb = row.querySelector('.select-cb');
+        cb.addEventListener('change', function(){
+          if(cb.checked) allCardsSelectedIds[c.id] = true;
+          else delete allCardsSelectedIds[c.id];
+          updateEditToolbar();
+        });
+        row.addEventListener('click', function(e){
+          if(e.target === cb) return;
+          cb.checked = !cb.checked;
+          cb.dispatchEvent(new Event('change'));
+        });
+      } else {
+        var bmBtn = row.querySelector('.bm-toggle');
+        bmBtn.addEventListener('click', function(){
+          c.bookmarked = !c.bookmarked;
+          saveCards();
+          renderAllCardsPane();
+          renderBookmarkList();
+          renderCardList();
+        });
+        var delBtn = row.querySelector('.del-one');
+        delBtn.addEventListener('click', function(){
+          cards = cards.filter(function(x){ return x.id !== c.id; });
+          saveCards();
+          renderAllCardsPane();
+          renderCardList();
+          renderBookmarkList();
+          refreshSetupInfo();
+        });
+      }
+
+      listEl.appendChild(row);
+    });
+  }
+
+  function updateEditToolbar(){
+    var selectedIds = Object.keys(allCardsSelectedIds);
+    $('selectedCount').textContent = selectedIds.length;
+    $('deleteSelectedBtn').disabled = selectedIds.length === 0;
+    var visibleCount = $('allCardsList').querySelectorAll('.select-cb').length;
+    var checkedCount = $('allCardsList').querySelectorAll('.select-cb:checked').length;
+    $('selectAllCheckbox').checked = visibleCount > 0 && checkedCount === visibleCount;
+  }
+
+  on('editModeToggleBtn', 'click', function(){
+    allCardsEditMode = !allCardsEditMode;
+    allCardsSelectedIds = {};
+    $('editModeToggleBtn').textContent = allCardsEditMode ? '완료' : '편집';
+    $('editToolbar').classList.toggle('show', allCardsEditMode);
+    renderAllCardsPane();
+    if(allCardsEditMode) updateEditToolbar();
+  });
+
+  on('allCardsSearch', 'input', function(e){
+    allCardsSearchQuery = e.target.value;
+    renderAllCardsPane();
+    if(allCardsEditMode) updateEditToolbar();
+  });
+
+  on('selectAllCheckbox', 'change', function(e){
+    var checked = e.target.checked;
+    var q = allCardsSearchQuery.trim().toLowerCase();
+    var visibleCards = cards.filter(function(c){
+      if(!q) return true;
+      return c.ko.toLowerCase().indexOf(q) !== -1 || c.en.toLowerCase().indexOf(q) !== -1;
+    });
+    if(checked){
+      visibleCards.forEach(function(c){ allCardsSelectedIds[c.id] = true; });
+    } else {
+      visibleCards.forEach(function(c){ delete allCardsSelectedIds[c.id]; });
+    }
+    renderAllCardsPane();
+    updateEditToolbar();
+  });
+
+  on('deleteSelectedBtn', 'click', function(){
+    var ids = Object.keys(allCardsSelectedIds).map(Number);
+    if(ids.length === 0) return;
+    var idSet = {};
+    ids.forEach(function(id){ idSet[id] = true; });
+    cards = cards.filter(function(c){ return !idSet[c.id]; });
+    allCardsSelectedIds = {};
+    saveCards();
+    renderAllCardsPane();
+    renderCardList();
+    renderBookmarkList();
+    refreshSetupInfo();
+    updateEditToolbar();
+  });
 
   function renderCardList(){
     var listEl = $('cardList');
@@ -267,6 +413,7 @@
       listEl.appendChild(row);
     });
     refreshExportTextareaIfOpen();
+    refreshAllCardsPaneIfOpen();
   }
 
   // ---------- setup screen: count selection ----------
@@ -369,6 +516,10 @@
   function refreshExportTextareaIfOpen(){
     var pane = $('exportPane');
     if(pane && pane.style.display === 'block') refreshExportTextarea();
+  }
+  function refreshAllCardsPaneIfOpen(){
+    var pane = $('allCardsPane');
+    if(pane && pane.classList.contains('active')) renderAllCardsPane();
   }
 
   on('exportCopyBtn', 'click', function(){
@@ -610,6 +761,7 @@
   }
 
   function loadNext(){
+    autoAdvanceToken++; // cancel any pending auto-advance timer tied to the previous card
     var koreanEl = $('koreanText');
     koreanEl.style.color = '';
     hintLevel = 0;
@@ -897,7 +1049,7 @@
     saveCards();
   }
 
-  function finalizeCorrect(fromDiffAuto){
+  function finalizeCorrect(){
     var classification = hintLevel >= 2 ? 'hard' : 'easy';
     scheduleCorrect(current, classification);
     sessionDoneCount++;
@@ -917,13 +1069,15 @@
     $('diffPanel').style.display = 'none';
     updateStats();
 
-    if(fromDiffAuto){
-      $('nextBtn').style.display = 'none';
-      setTimeout(function(){ loadNext(); }, 900);
-    } else {
-      $('nextBtn').style.display = 'block';
-      setTimeout(function(){ $('nextBtn').focus(); }, 50);
-    }
+    // Always auto-advance after showing the correct effect briefly, so the
+    // person doesn't have to tap "다음" every single time. The next button is
+    // still shown during the brief pause in case they want to jump ahead faster
+    // by tapping it themselves.
+    $('nextBtn').style.display = 'block';
+    var advanceToken = ++autoAdvanceToken;
+    setTimeout(function(){
+      if(advanceToken === autoAdvanceToken) loadNext();
+    }, 900);
   }
 
   function escalateWrong(){
@@ -959,18 +1113,18 @@
     setTimeout(function(){ $('markCorrectBtn').focus(); }, 50);
   }
 
-  on('markCorrectBtn', 'click', function(){ finalizeCorrect(true); });
+  on('markCorrectBtn', 'click', function(){ finalizeCorrect(); });
   on('markWrongBtn', 'click', function(){ escalateWrong(); });
 
   function checkAnswer(){
     if(!current) return;
-    if(pendingDiff){ finalizeCorrect(true); return; }
+    if(pendingDiff){ finalizeCorrect(); return; }
     var inp = $('answerInput');
     var val = normalizeForCompare(inp.value);
     var ans = normalizeForCompare(current.en);
 
     if(val.length === 0){ escalateWrong(); return; }
-    if(val === ans){ finalizeCorrect(false); return; }
+    if(val === ans){ finalizeCorrect(); return; }
 
     var dist = levenshtein(val, ans);
     if(dist === 1 || isWordwiseAnagramMatch(val, ans)){
@@ -986,7 +1140,7 @@
   document.addEventListener('keydown', function(e){
     if(e.key !== 'Enter') return;
     if($('quizScreen').style.display === 'none') return;
-    if(pendingDiff){ e.preventDefault(); finalizeCorrect(true); return; }
+    if(pendingDiff){ e.preventDefault(); finalizeCorrect(); return; }
     if($('nextBtn').style.display === 'block'){ e.preventDefault(); loadNext(); return; }
     if($('checkBtn').style.display === 'block'){ e.preventDefault(); checkAnswer(); return; }
   });
@@ -1025,7 +1179,9 @@
       'koreanText','answerInput','diffPanel','markCorrectBtn','markWrongBtn',
       'tabSettings','settingsPane','volumeSlider','ratioMinus','ratioPlus',
       'exportToggle','exportPane','exportTextarea','exportCopyBtn',
-      'overdueCount','dueSoonCount'
+      'overdueCount','dueSoonCount',
+      'tabAllCards','allCardsPane','editModeToggleBtn','allCardsSearch',
+      'editToolbar','selectAllCheckbox','deleteSelectedBtn','allCardsList'
     ];
     var missing = requiredIds.filter(function(id){ return !$(id); });
     if(missing.length){

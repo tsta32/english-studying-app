@@ -225,6 +225,8 @@
 
   .tabs-3{ display:flex; gap:6px; margin-bottom:14px; }
   .tabs-3 .tab-btn{ font-size:13px; padding:9px 6px; }
+  .tabs-4{ display:flex; gap:5px; margin-bottom:14px; }
+  .tabs-4 .tab-btn{ font-size:12px; padding:9px 4px; }
 
   .due-tag{ font-size:11px; padding:2px 8px; border-radius: var(--radius-md); white-space:nowrap; flex-shrink:0; }
   .due-tag.due-now{ background: var(--success-bg); color: var(--success-text); }
@@ -265,6 +267,32 @@
   .urgency-card.soon{ background: var(--warning-bg); }
   .urgency-card.soon .num{ color: var(--warning); }
   .urgency-card.soon .label{ color: var(--warning); opacity:0.85; }
+
+  /* full card list (no truncation) + edit/select mode */
+  .full-card-row{
+    display:flex; align-items:flex-start; gap:10px; padding:12px; background: var(--surface-2);
+    border-radius: var(--radius-md);
+  }
+  .full-card-row .checkbox-wrap{ flex-shrink:0; padding-top:2px; display:none; }
+  .full-card-row.edit-mode .checkbox-wrap{ display:block; }
+  .full-card-row input[type="checkbox"]{ width:18px; height:18px; }
+  .full-card-row .content{ flex:1; min-width:0; }
+  .full-card-row .content .ko{ font-size:14px; font-weight:500; line-height:1.5; word-break:break-word; }
+  .full-card-row .content .en{ font-size:13px; color:var(--text-2); line-height:1.5; word-break:break-word; margin-top:2px; }
+  .full-card-row .content .meta{ margin-top:6px; display:flex; gap:6px; flex-wrap:wrap; }
+  .full-card-row .right-btns{ flex-shrink:0; display:flex; flex-direction:column; gap:4px; }
+
+  .all-cards-toolbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; gap:8px; }
+  .all-cards-toolbar .search-input{ flex:1; }
+  .edit-toolbar{
+    display:none; align-items:center; justify-content:space-between; gap:8px;
+    margin-bottom:10px; padding:10px 12px; background: var(--surface-2); border-radius: var(--radius-md);
+  }
+  .edit-toolbar.show{ display:flex; }
+  .edit-toolbar .left{ display:flex; align-items:center; gap:8px; font-size:13px; }
+  .edit-toolbar button{ font-size:13px; padding:7px 10px; }
+  .edit-toolbar .delete-selected-btn{ color: var(--danger); border-color: var(--danger); }
+  .edit-toolbar .delete-selected-btn:disabled{ opacity:0.35; }
 </style>
 </head>
 <body>
@@ -290,9 +318,10 @@
       </div>
     </div>
 
-    <div class="tabs tabs-3">
+    <div class="tabs tabs-4">
       <button id="tabQuiz" class="tab-btn active">학습</button>
       <button id="tabBookmark" class="tab-btn">★ 북마크 (<span id="bookmarkTabCount">0</span>)</button>
+      <button id="tabAllCards" class="tab-btn">전체 문장 (<span id="allCardsTabCount">0</span>)</button>
       <button id="tabSettings" class="tab-btn">⚙ 설정</button>
     </div>
 
@@ -375,6 +404,27 @@
         <p class="muted" style="margin-bottom:12px;">오답으로 막혔던 표현이나 직접 표시한 카드 모음</p>
         <div id="bookmarkList" style="display:flex; flex-direction:column; gap:6px;"></div>
         <div id="bookmarkEmpty" class="empty-state" style="display:none;">아직 북마크한 문장이 없어요</div>
+      </div>
+    </div>
+
+    <div id="allCardsPane" class="pane">
+      <div class="card">
+        <div class="all-cards-toolbar">
+          <h2 style="font-size:15px;">전체 문장 (<span id="allCardsCount">0</span>개)</h2>
+          <button type="button" id="editModeToggleBtn" style="font-size:13px; padding:7px 12px;">편집</button>
+        </div>
+        <input type="text" id="allCardsSearch" class="search-input" placeholder="한국어 또는 영어로 검색" style="margin-bottom:12px;" />
+
+        <div class="edit-toolbar" id="editToolbar">
+          <label class="left">
+            <input type="checkbox" id="selectAllCheckbox" style="width:16px; height:16px;" />
+            전체 선택 (<span id="selectedCount">0</span>개 선택됨)
+          </label>
+          <button type="button" id="deleteSelectedBtn" class="delete-selected-btn" disabled>선택 삭제</button>
+        </div>
+
+        <div id="allCardsList" style="display:flex; flex-direction:column; gap:8px; max-height:520px; overflow-y:auto;"></div>
+        <div id="allCardsEmpty" class="empty-state" style="display:none;">저장된 문장이 없어요</div>
       </div>
     </div>
 
