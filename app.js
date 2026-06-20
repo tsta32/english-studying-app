@@ -271,13 +271,20 @@
 
   // ---------- setup screen: count selection ----------
   function refreshSetupInfo(){
+    var t = now();
     var avail = availableCards();
-    var dueNewCount = cards.filter(function(c){ return !c.everAnswered && c.dueAt <= now(); }).length;
+    var dueNewCount = cards.filter(function(c){ return !c.everAnswered && c.dueAt <= t; }).length;
     var dueReviewCount = avail.length - dueNewCount;
     $('availInfo').textContent = '지금 풀 수 있는 카드: ' + avail.length + '개 (복습 ' + dueReviewCount + ' / 새 카드 ' + dueNewCount + ')';
     buildCountOptions(avail.length);
     $('customCountHint').textContent = '전체 저장된 문장: ' + cards.length + '개 (그보다 많이는 시작할 수 없어요)';
     $('newCardRatioInfo').textContent = '새 카드 ' + (settings.newCardRatio||5) + '문제당 1개씩 섞여서 출제됩니다 (설정 탭에서 조절 가능)';
+
+    // urgency counters shown big on the home screen
+    var overdueCount = cards.filter(function(c){ return c.dueAt <= t; }).length;
+    var dueSoonCount = cards.filter(function(c){ return c.dueAt > t && c.dueAt <= t + ONE_DAY; }).length;
+    $('overdueCount').textContent = overdueCount;
+    $('dueSoonCount').textContent = dueSoonCount;
   }
 
   function buildCountOptions(maxAvail){
@@ -1017,7 +1024,8 @@
       'cancelModalBack','cancelModalConfirm','startBtn','checkBtn','nextBtn',
       'koreanText','answerInput','diffPanel','markCorrectBtn','markWrongBtn',
       'tabSettings','settingsPane','volumeSlider','ratioMinus','ratioPlus',
-      'exportToggle','exportPane','exportTextarea','exportCopyBtn'
+      'exportToggle','exportPane','exportTextarea','exportCopyBtn',
+      'overdueCount','dueSoonCount'
     ];
     var missing = requiredIds.filter(function(id){ return !$(id); });
     if(missing.length){

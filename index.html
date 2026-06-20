@@ -254,6 +254,17 @@
     padding:10px 12px; border-radius: var(--radius-md); border:1px solid var(--border-strong);
     background: var(--surface-2); color: var(--text); resize: vertical; line-height:1.6;
   }
+
+  .urgency-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:14px; }
+  .urgency-card{ border-radius: var(--radius-lg); padding:14px 12px; text-align:center; }
+  .urgency-card .num{ font-size:32px; font-weight:500; line-height:1.1; }
+  .urgency-card .label{ font-size:12px; margin-top:4px; }
+  .urgency-card.overdue{ background: var(--danger-bg); }
+  .urgency-card.overdue .num{ color: var(--danger-text); }
+  .urgency-card.overdue .label{ color: var(--danger-text); opacity:0.85; }
+  .urgency-card.soon{ background: var(--warning-bg); }
+  .urgency-card.soon .num{ color: var(--warning); }
+  .urgency-card.soon .label{ color: var(--warning); opacity:0.85; }
 </style>
 </head>
 <body>
@@ -267,6 +278,17 @@
   <!-- ============ SETUP SCREEN ============ -->
   <div id="setupScreen">
     <div class="header"><h1>영어 템플릿 암기</h1></div>
+
+    <div class="urgency-grid">
+      <div class="urgency-card overdue">
+        <div class="num" id="overdueCount">0</div>
+        <div class="label">지금 밀린 카드</div>
+      </div>
+      <div class="urgency-card soon">
+        <div class="num" id="dueSoonCount">0</div>
+        <div class="label">내일까지 돌아올 카드</div>
+      </div>
+    </div>
 
     <div class="tabs tabs-3">
       <button id="tabQuiz" class="tab-btn active">학습</button>
