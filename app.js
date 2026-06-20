@@ -128,6 +128,19 @@
   // ---------- DOM refs ----------
   var $ = function(id){ return document.getElementById(id); };
 
+  // Defensive binding: if an element is missing (e.g. stale cached HTML mismatched
+  // with a newer app.js), skip it instead of throwing and silently breaking every
+  // listener registered after it. Logs a warning to the console for diagnosis.
+  function on(id, event, handler){
+    var el = $(id);
+    if(!el){
+      console.warn('[srs-app] element #' + id + ' not found - skipping listener. ' +
+        'This usually means a cached old version of index.html is loaded; hard-refresh or reinstall the app.');
+      return;
+    }
+    el.addEventListener(event, handler);
+  }
+
   // ---------- tabs ----------
   function setTab(which){
     $('quizSetupPane').classList.toggle('active', which==='quiz');
@@ -136,8 +149,8 @@
     $('tabBookmark').classList.toggle('active', which==='bookmark');
     if(which === 'bookmark') renderBookmarkList();
   }
-  $('tabQuiz').addEventListener('click', function(){ setTab('quiz'); });
-  $('tabBookmark').addEventListener('click', function(){ setTab('bookmark'); });
+  on('tabQuiz', 'click', function(){ setTab('quiz'); });
+  on('tabBookmark', 'click', function(){ setTab('bookmark'); });
 
   // ---------- bookmark + card list rendering ----------
   function renderBookmarkList(){
@@ -227,7 +240,7 @@
     $('startBtn').disabled = maxAvail === 0;
   }
 
-  $('customCountBtn').addEventListener('click', function(){
+  on('customCountBtn', 'click', function(){
     var inp = $('customCountInput');
     var val = parseInt(inp.value, 10);
     var avail = availableCards();
@@ -259,7 +272,7 @@
   });
 
   // ---------- add card form: toggle open/close ----------
-  $('addToggle').addEventListener('click', function(){
+  on('addToggle', 'click', function(){
     var form = $('addForm');
     var chevron = $('addChevron');
     var isOpen = form.style.display === 'block';
@@ -268,20 +281,20 @@
   });
 
   // ---------- add card form: mode tabs ----------
-  $('addModeSingle').addEventListener('click', function(){
+  on('addModeSingle', 'click', function(){
     $('addModeSingle').classList.add('active');
     $('addModeBulk').classList.remove('active');
     $('addPaneSingle').classList.add('active');
     $('addPaneBulk').classList.remove('active');
   });
-  $('addModeBulk').addEventListener('click', function(){
+  on('addModeBulk', 'click', function(){
     $('addModeBulk').classList.add('active');
     $('addModeSingle').classList.remove('active');
     $('addPaneBulk').classList.add('active');
     $('addPaneSingle').classList.remove('active');
   });
 
-  $('addCardBtn').addEventListener('click', function(){
+  on('addCardBtn', 'click', function(){
     var koInp = $('newKo'), enInp = $('newEn'), bmInp = $('newBookmark'), fb = $('addFeedback');
     var ko = koInp.value.trim(), en = enInp.value.trim();
     if(!ko || !en){
@@ -324,7 +337,7 @@
     return { added: added, skipped: skipped };
   }
 
-  $('bulkAddBtn').addEventListener('click', function(){
+  on('bulkAddBtn', 'click', function(){
     var ta = $('bulkInput');
     var resultEl = $('bulkResult');
     var raw = ta.value;
@@ -352,13 +365,13 @@
   });
 
   // ---------- cancel session modal ----------
-  $('cancelSessionBtn').addEventListener('click', function(){
+  on('cancelSessionBtn', 'click', function(){
     $('cancelModal').classList.add('show');
   });
-  $('cancelModalBack').addEventListener('click', function(){
+  on('cancelModalBack', 'click', function(){
     $('cancelModal').classList.remove('show');
   });
-  $('cancelModalConfirm').addEventListener('click', function(){
+  on('cancelModalConfirm', 'click', function(){
     $('cancelModal').classList.remove('show');
     // cards already answered this session already had their schedule saved at answer time.
     // unanswered cards in sessionQueue keep their pre-existing dueAt/stage untouched.
@@ -371,8 +384,8 @@
   });
 
   // ---------- session flow ----------
-  $('startBtn').addEventListener('click', startSession);
-  $('restartBtn').addEventListener('click', function(){
+  on('startBtn', 'click', startSession);
+  on('restartBtn', 'click', function(){
     $('doneScreen').style.display = 'none';
     $('setupScreen').style.display = 'block';
     refreshSetupInfo();
@@ -729,8 +742,8 @@
     setTimeout(function(){ $('markCorrectBtn').focus(); }, 50);
   }
 
-  $('markCorrectBtn').addEventListener('click', function(){ finalizeCorrect(true); });
-  $('markWrongBtn').addEventListener('click', function(){ escalateWrong(); });
+  on('markCorrectBtn', 'click', function(){ finalizeCorrect(true); });
+  on('markWrongBtn', 'click', function(){ escalateWrong(); });
 
   function checkAnswer(){
     if(!current) return;
@@ -750,8 +763,8 @@
     escalateWrong();
   }
 
-  $('checkBtn').addEventListener('click', checkAnswer);
-  $('nextBtn').addEventListener('click', loadNext);
+  on('checkBtn', 'click', checkAnswer);
+  on('nextBtn', 'click', loadNext);
 
   document.addEventListener('keydown', function(e){
     if(e.key !== 'Enter') return;
@@ -768,7 +781,7 @@
     deferredInstallPrompt = e;
     $('installBanner').style.display = 'flex';
   });
-  $('installBtn').addEventListener('click', function(){
+  on('installBtn', 'click', function(){
     if(!deferredInstallPrompt) return;
     deferredInstallPrompt.prompt();
     deferredInstallPrompt.userChoice.finally(function(){
@@ -788,6 +801,20 @@
   }
 
   // ---------- init ----------
+  (function checkRequiredElements(){
+    var requiredIds = [
+      'setupScreen','quizScreen','doneScreen','cancelModal','cancelSessionBtn',
+      'cancelModalBack','cancelModalConfirm','startBtn','checkBtn','nextBtn',
+      'koreanText','answerInput','diffPanel','markCorrectBtn','markWrongBtn'
+    ];
+    var missing = requiredIds.filter(function(id){ return !$(id); });
+    if(missing.length){
+      console.warn('[srs-app] Missing elements detected: ' + missing.join(', ') +
+        '. This usually means index.html is an older cached version that does not match app.js. ' +
+        'Try a hard refresh, or delete and reinstall the home screen app.');
+    }
+  })();
+
   loadCards();
   setTab('quiz');
   renderCardList();
