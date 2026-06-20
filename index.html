@@ -189,6 +189,39 @@
     background: var(--info-bg); color: var(--info-text); border-radius: var(--radius-md); font-size:13px;
   }
   .install-banner button{ background:transparent; border:1px solid var(--info-text); color:var(--info-text); font-size:12px; padding:6px 10px; flex-shrink:0; }
+
+  .quiz-top-row{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .quiz-top-row .cancel-link{
+    background:transparent; border:none; color: var(--text-3); font-size:13px; padding:6px 4px;
+  }
+
+  .modal-overlay{
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45);
+    align-items:center; justify-content:center; z-index:200; padding:20px;
+  }
+  .modal-overlay.show{ display:flex; }
+  .modal-box{
+    background: var(--surface); border-radius: var(--radius-lg); padding:20px;
+    max-width:360px; width:100%;
+  }
+  .modal-box h3{ font-size:16px; margin-bottom:8px; }
+  .modal-box p{ font-size:13px; color: var(--text-2); line-height:1.6; margin-bottom:18px; }
+  .modal-actions{ display:flex; gap:8px; }
+  .modal-actions button{ flex:1; font-weight:500; }
+  .modal-actions .danger-btn{ color: var(--danger); border-color: var(--danger); }
+
+  textarea#bulkInput{
+    width:100%; min-height:140px; font-family: ui-monospace, "SF Mono", monospace; font-size:13px;
+    padding:10px 12px; border-radius: var(--radius-md); border:1px solid var(--border-strong);
+    background: var(--surface); color: var(--text); resize: vertical; line-height:1.6;
+  }
+  textarea#bulkInput:focus{ outline: 2px solid var(--info); outline-offset:-1px; }
+  .bulk-result{ font-size:12px; margin-top:8px; white-space:pre-line; }
+  .add-mode-tabs{ display:flex; gap:8px; margin-bottom:12px; }
+  .add-mode-btn{ flex:1; font-size:13px; padding:8px; }
+  .add-mode-btn.active{ border-color: var(--info); background: var(--info-bg); color: var(--info-text); }
+  .add-pane{ display:none; }
+  .add-pane.active{ display:block; }
 </style>
 </head>
 <body>
@@ -230,19 +263,36 @@
           <span class="chevron" id="addChevron">▾</span>
         </div>
         <div id="addForm" style="display:none; margin-top:12px;">
-          <div class="form-row">
-            <label class="form-label">한국어 뜻</label>
-            <input type="text" id="newKo" placeholder="예: 검토 부탁드립니다" />
-          </div>
-          <div class="form-row">
-            <label class="form-label">영어 정답</label>
-            <input type="text" id="newEn" placeholder="예: please review this" />
-          </div>
-          <label class="check-row"><input type="checkbox" id="newBookmark" />추가하면서 북마크하기</label>
-          <button id="addCardBtn" style="width:100%; font-weight:500;">카드 추가하기</button>
-          <p class="muted" id="addFeedback" style="margin-top:8px; min-height:16px;"></p>
-        </div>
 
+          <div class="add-mode-tabs">
+            <button type="button" class="add-mode-btn active" id="addModeSingle">한 개씩 입력</button>
+            <button type="button" class="add-mode-btn" id="addModeBulk">엑셀에서 붙여넣기</button>
+          </div>
+
+          <div id="addPaneSingle" class="add-pane active">
+            <div class="form-row">
+              <label class="form-label">한국어 뜻</label>
+              <input type="text" id="newKo" placeholder="예: 검토 부탁드립니다" />
+            </div>
+            <div class="form-row">
+              <label class="form-label">영어 정답</label>
+              <input type="text" id="newEn" placeholder="예: please review this" />
+            </div>
+            <label class="check-row"><input type="checkbox" id="newBookmark" />추가하면서 북마크하기</label>
+            <button id="addCardBtn" style="width:100%; font-weight:500;">카드 추가하기</button>
+            <p class="muted" id="addFeedback" style="margin-top:8px; min-height:16px;"></p>
+          </div>
+
+          <div id="addPaneBulk" class="add-pane">
+            <p class="muted" style="margin-bottom:8px;">
+              엑셀이나 구글시트에서 <strong>한국어 뜻 열</strong>과 <strong>영어 정답 열</strong> 두 칸을 같이 드래그해서 복사한 다음, 아래 칸에 그대로 붙여넣으세요. 한 줄에 한 문장씩 자동으로 들어갑니다.
+            </p>
+            <textarea id="bulkInput" placeholder="도와주셔서 감사합니다	thank you for your help&#10;이건 제 잘못이었어요	this was my fault"></textarea>
+            <button id="bulkAddBtn" style="width:100%; font-weight:500; margin-top:10px;">붙여넣은 내용 전체 추가하기</button>
+            <div class="bulk-result" id="bulkResult"></div>
+          </div>
+
+        </div>
         <div style="margin-top:10px;">
           <div class="section-title">전체 카드 (<span id="cardListCount">0</span>개)</div>
           <div id="cardList" style="max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;"></div>
@@ -262,6 +312,9 @@
 
   <!-- ============ QUIZ SCREEN ============ -->
   <div id="quizScreen" style="display:none;">
+    <div class="quiz-top-row">
+      <button type="button" class="cancel-link" id="cancelSessionBtn">← 취소하고 홈으로</button>
+    </div>
     <div class="stats-bar">
       <div class="stat"><div class="label">정답 처리</div><div class="value" id="progressCount">0/0</div></div>
       <div class="stat"><div class="label">연속 정답</div><div class="value" id="streakCount" style="color:var(--info);">0</div></div>
@@ -313,6 +366,17 @@
     </div>
   </div>
 
+</div>
+
+<div class="modal-overlay" id="cancelModal">
+  <div class="modal-box">
+    <h3>세션을 취소할까요?</h3>
+    <p>지금까지 정답·오답으로 결과가 나온 문제들은 그 결과 그대로 각자의 복습 일정에 반영됩니다 (정답은 15분 뒤 또는 1일 뒤부터, 오답은 1일 뒤부터). 아직 풀지 않은 나머지 문제들은 원래 복습 일정 그대로 유지되어 손해 없이 다음에 다시 풀 수 있어요.</p>
+    <div class="modal-actions">
+      <button type="button" id="cancelModalBack">계속 풀기</button>
+      <button type="button" id="cancelModalConfirm" class="danger-btn">취소하고 홈으로</button>
+    </div>
+  </div>
 </div>
 
 <script src="app.js"></script>

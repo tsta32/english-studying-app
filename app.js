@@ -258,13 +258,27 @@
     }
   });
 
-  // ---------- add card form ----------
+  // ---------- add card form: toggle open/close ----------
   $('addToggle').addEventListener('click', function(){
     var form = $('addForm');
     var chevron = $('addChevron');
     var isOpen = form.style.display === 'block';
     form.style.display = isOpen ? 'none' : 'block';
     chevron.classList.toggle('open', !isOpen);
+  });
+
+  // ---------- add card form: mode tabs ----------
+  $('addModeSingle').addEventListener('click', function(){
+    $('addModeSingle').classList.add('active');
+    $('addModeBulk').classList.remove('active');
+    $('addPaneSingle').classList.add('active');
+    $('addPaneBulk').classList.remove('active');
+  });
+  $('addModeBulk').addEventListener('click', function(){
+    $('addModeBulk').classList.add('active');
+    $('addModeSingle').classList.remove('active');
+    $('addPaneBulk').classList.add('active');
+    $('addPaneSingle').classList.remove('active');
   });
 
   $('addCardBtn').addEventListener('click', function(){
@@ -282,6 +296,78 @@
     fb.style.color = 'var(--success-text)';
     renderCardList(); renderBookmarkList(); refreshSetupInfo();
     setTimeout(function(){ fb.textContent = ''; }, 1800);
+  });
+
+  // ---------- bulk paste add (from Excel / Google Sheets) ----------
+  function parseBulkInput(raw){
+    var lines = raw.split(/\r\n|\r|\n/);
+    var added = [];
+    var skipped = 0;
+    lines.forEach(function(line){
+      if(!line.trim()) return;
+      // split on tab first (Excel/Sheets paste), fallback to 2+ spaces, then comma
+      var parts;
+      if(line.indexOf('\t') !== -1){
+        parts = line.split('\t');
+      } else if(/ {2,}/.test(line)){
+        parts = line.split(/ {2,}/);
+      } else if(line.indexOf(',') !== -1){
+        parts = line.split(',');
+      } else {
+        parts = [line];
+      }
+      var ko = (parts[0] || '').trim();
+      var en = (parts[1] || '').trim();
+      if(!ko || !en){ skipped++; return; }
+      added.push({ ko: ko, en: en });
+    });
+    return { added: added, skipped: skipped };
+  }
+
+  $('bulkAddBtn').addEventListener('click', function(){
+    var ta = $('bulkInput');
+    var resultEl = $('bulkResult');
+    var raw = ta.value;
+    if(!raw.trim()){
+      resultEl.textContent = '붙여넣은 내용이 없어요';
+      resultEl.style.color = 'var(--danger-text)';
+      return;
+    }
+    var parsed = parseBulkInput(raw);
+    if(parsed.added.length === 0){
+      resultEl.textContent = '인식된 문장이 없어요. 형식을 확인해주세요 (한국어 [탭] 영어, 한 줄에 하나씩)';
+      resultEl.style.color = 'var(--danger-text)';
+      return;
+    }
+    parsed.added.forEach(function(item){
+      cards.push({ id: nextId++, ko: item.ko, en: item.en, stage: 0, dueAt: now(), bookmarked: false });
+    });
+    saveCards();
+    ta.value = '';
+    var msg = parsed.added.length + '개 추가 완료';
+    if(parsed.skipped > 0) msg += ' (형식이 안 맞아 건너뛴 줄 ' + parsed.skipped + '개)';
+    resultEl.textContent = msg;
+    resultEl.style.color = 'var(--success-text)';
+    renderCardList(); renderBookmarkList(); refreshSetupInfo();
+  });
+
+  // ---------- cancel session modal ----------
+  $('cancelSessionBtn').addEventListener('click', function(){
+    $('cancelModal').classList.add('show');
+  });
+  $('cancelModalBack').addEventListener('click', function(){
+    $('cancelModal').classList.remove('show');
+  });
+  $('cancelModalConfirm').addEventListener('click', function(){
+    $('cancelModal').classList.remove('show');
+    // cards already answered this session already had their schedule saved at answer time.
+    // unanswered cards in sessionQueue keep their pre-existing dueAt/stage untouched.
+    current = null;
+    pendingDiff = null;
+    $('quizScreen').style.display = 'none';
+    $('setupScreen').style.display = 'block';
+    refreshSetupInfo();
+    renderCardList();
   });
 
   // ---------- session flow ----------
