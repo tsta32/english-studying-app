@@ -10,477 +10,342 @@
 <title>영어 템플릿 암기</title>
 <link rel="manifest" href="manifest.json" />
 <link rel="apple-touch-icon" href="icons/icon-192.png" />
-<link rel="icon" href="icons/icon-192.png" />
 <style>
+:root{
+  --bg:#F1EFE8; --surface:#FFFFFF; --surface-2:#F1EFE8;
+  --border:rgba(44,44,42,0.12); --border-strong:rgba(44,44,42,0.22);
+  --text:#2C2C2A; --text-2:#5F5E5A; --text-3:#888780;
+  --info:#185FA5; --info-bg:#E6F1FB; --info-text:#0C447C;
+  --success:#0F6E56; --success-text:#085041; --success-bg:#E1F5EE;
+  --danger:#A32D2D; --danger-text:#791F1F; --danger-bg:#FCEBEB;
+  --warning:#854F0B; --warning-bg:#FAEEDA;
+  --r-md:8px; --r-lg:12px;
+}
+@media(prefers-color-scheme:dark){
   :root{
-    --bg: #F1EFE8;
-    --surface: #FFFFFF;
-    --surface-2: #F1EFE8;
-    --border: rgba(44,44,42,0.12);
-    --border-strong: rgba(44,44,42,0.22);
-    --text: #2C2C2A;
-    --text-2: #5F5E5A;
-    --text-3: #888780;
-    --info: #185FA5;
-    --info-bg: #E6F1FB;
-    --info-text: #0C447C;
-    --success: #0F6E56;
-    --success-text: #085041;
-    --success-bg: #E1F5EE;
-    --danger: #A32D2D;
-    --danger-text: #791F1F;
-    --danger-bg: #FCEBEB;
-    --warning: #854F0B;
-    --warning-bg: #FAEEDA;
-    --radius-md: 8px;
-    --radius-lg: 12px;
-    --radius-xl: 16px;
+    --bg:#1C1C1A; --surface:#2C2C2A; --surface-2:#252523;
+    --border:rgba(255,255,255,0.12); --border-strong:rgba(255,255,255,0.22);
+    --text:#F1EFE8; --text-2:#B4B2A9; --text-3:#888780;
+    --info:#85B7EB; --info-bg:#0C447C; --info-text:#E6F1FB;
+    --success:#5DCAA5; --success-text:#E1F5EE; --success-bg:#085041;
+    --danger:#F09595; --danger-text:#FCEBEB; --danger-bg:#791F1F;
+    --warning:#FAC775; --warning-bg:#412402;
   }
-  @media (prefers-color-scheme: dark){
-    :root{
-      --bg: #1C1C1A;
-      --surface: #2C2C2A;
-      --surface-2: #252523;
-      --border: rgba(255,255,255,0.12);
-      --border-strong: rgba(255,255,255,0.22);
-      --text: #F1EFE8;
-      --text-2: #B4B2A9;
-      --text-3: #888780;
-      --info: #85B7EB;
-      --info-bg: #0C447C;
-      --info-text: #E6F1FB;
-      --success: #5DCAA5;
-      --success-text: #E1F5EE;
-      --success-bg: #085041;
-      --danger: #F09595;
-      --danger-text: #FCEBEB;
-      --danger-bg: #791F1F;
-      --warning: #FAC775;
-      --warning-bg: #412402;
-    }
-  }
-  *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
-  html,body{
-    margin:0; padding:0; background:var(--bg); color:var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
-    overscroll-behavior-y: none;
-  }
-  body{
-    padding: max(16px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
-    min-height: 100vh;
-  }
-  #app{ max-width: 480px; margin: 0 auto; position: relative; }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
+  overscroll-behavior-y:none;}
+body{padding:max(16px,env(safe-area-inset-top)) 16px max(24px,env(safe-area-inset-bottom));min-height:100vh;}
+#app{max-width:480px;margin:0 auto;position:relative;}
+h1,h2{font-weight:500;margin:0;}
+button{font-family:inherit;background:var(--surface);border:1px solid var(--border-strong);
+  border-radius:var(--r-md);color:var(--text);font-size:15px;padding:10px 14px;
+  cursor:pointer;transition:background 0.1s,transform 0.08s;}
+button:active{transform:scale(0.97);}
+button:disabled{opacity:0.4;cursor:default;}
+button:disabled:active{transform:none;}
+input[type="text"],input[type="number"]{font-family:inherit;width:100%;height:40px;
+  padding:0 12px;border-radius:var(--r-md);border:1px solid var(--border-strong);
+  background:var(--surface);color:var(--text);font-size:16px;}
+input:focus{outline:2px solid var(--info);outline-offset:-1px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;}
+.muted{color:var(--text-2);font-size:13px;}
+.empty-state{font-size:13px;color:var(--text-3);text-align:center;padding:24px 0;}
 
-  h1,h2,h3{ font-weight: 500; margin: 0; }
-  p{ margin: 0; }
+/* top-level tabs */
+.main-tabs{display:flex;gap:6px;margin-bottom:14px;}
+.main-tab{flex:1;font-size:12px;padding:9px 4px;font-weight:500;}
+.main-tab.active{border-color:var(--info);background:var(--info-bg);color:var(--info-text);}
+.pane{display:none;}.pane.active{display:block;}
 
-  button{
-    font-family: inherit;
-    background: var(--surface);
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius-md);
-    color: var(--text);
-    font-size: 15px;
-    padding: 10px 14px;
-    cursor: pointer;
-    transition: background 0.15s ease, transform 0.08s ease;
-  }
-  button:active{ transform: scale(0.98); }
-  button:disabled{ opacity: 0.4; cursor: default; }
-  button:disabled:active{ transform: none; }
+/* urgency grid */
+.urgency-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.urg-card{border-radius:var(--r-lg);padding:14px 12px;text-align:center;}
+.urg-card .num{font-size:32px;font-weight:500;line-height:1.1;}
+.urg-card .lbl{font-size:12px;margin-top:4px;}
+.urg-card.overdue{background:var(--danger-bg);}
+.urg-card.overdue .num,.urg-card.overdue .lbl{color:var(--danger-text);}
+.urg-card.soon{background:var(--warning-bg);}
+.urg-card.soon .num,.urg-card.soon .lbl{color:var(--warning);}
 
-  input[type="text"], input[type="number"]{
-    font-family: inherit;
-    width: 100%;
-    height: 40px;
-    padding: 0 12px;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--border-strong);
-    background: var(--surface);
-    color: var(--text);
-    font-size: 16px;
-  }
-  input:focus{ outline: 2px solid var(--info); outline-offset: -1px; }
+/* hint-box */
+.hint-box{font-size:12px;color:var(--text-3);margin-bottom:12px;padding:8px 10px;
+  background:var(--surface-2);border-radius:var(--r-md);}
 
-  .card{
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 20px;
-  }
+/* count grid */
+.count-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
+.count-btn{font-weight:500;padding:12px 6px;}
+.count-btn.active{border-color:var(--info);background:var(--info-bg);color:var(--info-text);}
+.custom-row{display:flex;gap:8px;align-items:center;margin-bottom:10px;}
+.custom-row input{flex:1;}
 
-  .header{
-    display:flex; align-items:center; justify-content:space-between;
-    margin-bottom: 16px;
-  }
-  .header h1{ font-size: 20px; }
+/* chapter multi-select for quiz */
+.chapter-select-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;max-height:180px;overflow-y:auto;}
+.chapter-select-row{display:flex;align-items:center;gap:10px;padding:8px 10px;
+  background:var(--surface-2);border-radius:var(--r-md);cursor:pointer;}
+.chapter-select-row input[type="checkbox"]{width:18px;height:18px;flex-shrink:0;}
+.chapter-select-row .ch-name{font-size:14px;flex:1;}
+.chapter-select-row .ch-count{font-size:12px;color:var(--text-3);}
 
-  .tabs{ display:flex; gap:8px; margin-bottom:14px; }
-  .tab-btn{ flex:1; font-weight:500; }
-  .tab-btn.active{ border-color: var(--info); background: var(--info-bg); color: var(--info-text); }
+/* ng filter */
+.ng-filter-box{margin-bottom:12px;padding:10px 12px;background:var(--surface-2);border-radius:var(--r-md);}
+.ng-filter-box label{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;flex-wrap:wrap;}
+.ng-filter-box input[type="checkbox"]{width:auto;height:auto;}
+.ng-filter-box input[type="number"]{width:56px;height:32px;font-size:13px;padding:0 8px;}
 
-  .muted{ color: var(--text-2); font-size: 13px; }
-  .hint-box{ font-size:12px; color:var(--text-3); margin-bottom:14px; padding:8px 10px; background:var(--surface-2); border-radius:var(--radius-md); }
+/* quiz screen */
+.quiz-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.cancel-link{background:transparent;border:none;color:var(--text-3);font-size:13px;padding:6px 4px;}
+.stats-bar{display:flex;gap:8px;margin-bottom:14px;}
+.stat{flex:1;background:var(--surface-2);border-radius:var(--r-md);padding:10px;text-align:center;}
+.stat .lbl{font-size:11px;color:var(--text-3);}
+.stat .val{font-size:20px;font-weight:500;margin-top:2px;}
+.badge{display:inline-block;font-size:11px;padding:3px 10px;border-radius:var(--r-md);
+  background:var(--surface-2);color:var(--text-2);margin-bottom:12px;}
+#koreanText{font-size:19px;font-weight:500;line-height:1.5;margin-bottom:8px;min-height:56px;transition:color 0.15s;}
+#hintText{font-size:15px;font-family:ui-monospace,"SF Mono",monospace;letter-spacing:2px;margin-bottom:10px;display:none;}
+#hintLabel{font-size:11px;color:var(--text-3);margin-top:-4px;margin-bottom:10px;display:none;}
+#diffPanel{display:none;margin-bottom:12px;padding:10px 12px;background:var(--surface-2);border-radius:var(--r-md);}
+#diffPanel .row{font-size:15px;font-family:ui-monospace,"SF Mono",monospace;margin-bottom:4px;}
+.diff-actions{display:flex;gap:8px;margin-top:10px;}
+.btn-ok{color:var(--success);border-color:var(--success);}
+.btn-ng{color:var(--danger);border-color:var(--danger);}
+.action-row{display:flex;gap:8px;}
+.action-row button{flex:1;font-weight:500;}
+.footer-hint{margin-top:10px;font-size:12px;color:var(--text-3);text-align:center;}
 
-  .count-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-bottom: 12px; }
-  .count-btn{ font-weight:500; padding: 12px 8px; }
-  .count-btn.active{ border-color: var(--info); background: var(--info-bg); color: var(--info-text); }
+/* all-cards tab */
+.ac-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.ac-toolbar h2{font-size:15px;flex:1;}
+.sort-btn,.toggle-btn{font-size:12px;padding:5px 9px;}
+.sort-btn.active{border-color:var(--info);background:var(--info-bg);color:var(--info-text);}
+.toggle-btn.active{border-color:var(--success);background:var(--success-bg);color:var(--success-text);}
+.toggle-btn:not(.active){opacity:0.5;}
+.chip-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.chip{font-size:12px;padding:4px 10px;border-radius:20px;border:1px solid var(--border-strong);
+  cursor:pointer;background:var(--surface);}
+.chip.active{border-color:var(--info);background:var(--info-bg);color:var(--info-text);}
 
-  .custom-count-row{ display:flex; gap:8px; align-items:center; margin-bottom: 16px; }
-  .custom-count-row input{ flex:1; }
+/* full card row */
+.fc-row{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;
+  background:var(--surface-2);border-radius:var(--r-md);}
+.fc-row .fc-cb{flex-shrink:0;padding-top:2px;}
+.fc-row .fc-cb input{width:20px;height:20px;cursor:pointer;}
+.fc-row .fc-body{flex:1;min-width:0;}
+.fc-row .fc-ko{font-size:14px;font-weight:500;line-height:1.5;word-break:break-word;}
+.fc-row .fc-en{font-size:13px;color:var(--text-2);line-height:1.5;word-break:break-word;margin-top:2px;}
+.fc-row .fc-meta{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;}
+.fc-row .fc-btns{display:flex;flex-direction:column;gap:4px;flex-shrink:0;}
+.icon-btn{padding:4px 8px;line-height:1;font-size:16px;}
+.icon-btn.bm{color:var(--text-3);}
+.icon-btn.bm.on{color:var(--warning);}
+.due-tag{font-size:11px;padding:2px 7px;border-radius:var(--r-md);white-space:nowrap;}
+.due-now{background:var(--success-bg);color:var(--success-text);}
+.due-soon{background:var(--warning-bg);color:var(--warning);}
+.due-later{background:var(--surface-2);color:var(--text-3);}
+.due-new{background:var(--info-bg);color:var(--info-text);}
+.ng-badge{background:var(--danger-bg);color:var(--danger-text);}
 
-  .stats-bar{ display:flex; gap:8px; margin-bottom:16px; }
-  .stat{ flex:1; background: var(--surface-2); border-radius: var(--radius-md); padding:10px; text-align:center; }
-  .stat .label{ font-size:11px; color:var(--text-3); }
-  .stat .value{ font-size:20px; font-weight:500; margin-top:2px; }
+/* bulk action bar */
+.bulk-bar{display:none;align-items:center;gap:8px;padding:10px 12px;margin-bottom:10px;
+  background:var(--surface-2);border-radius:var(--r-md);flex-wrap:wrap;}
+.bulk-bar.show{display:flex;}
+.bulk-bar .blbl{font-size:13px;flex:1;}
+.bulk-bar button{font-size:13px;padding:7px 10px;}
+.ng-bulk-btn{color:var(--danger);border-color:var(--danger);}
+.del-bulk-btn{color:var(--danger);border-color:var(--danger);}
 
-  .badge{ display:inline-block; font-size:11px; padding:3px 10px; border-radius: var(--radius-md); background: var(--surface-2); color: var(--text-2); margin-bottom:14px; }
+/* settings */
+.srow{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:12px 0;border-bottom:1px solid var(--border);}
+.srow:last-child{border-bottom:none;}
+.srow .slbl{font-size:14px;}
+.srow .ssub{font-size:12px;color:var(--text-3);margin-top:2px;}
+.vol-row{display:flex;align-items:center;gap:10px;}
+.vol-row input[type="range"]{width:140px;}
+.vol-row span{font-size:13px;color:var(--text-2);min-width:38px;text-align:right;}
+.stepper{display:flex;align-items:center;gap:8px;}
+.stepper button{width:32px;height:32px;padding:0;font-size:18px;}
+.stepper .val{font-size:14px;min-width:72px;text-align:center;}
 
-  #quizCard{ position:relative; overflow:visible; }
-  #koreanText{ font-size:19px; font-weight:500; line-height:1.5; margin-bottom:8px; min-height:56px; transition:color 0.15s ease; }
-  #hintText{ font-size:15px; font-family: ui-monospace, "SF Mono", monospace; letter-spacing:2px; margin-bottom:10px; display:none; }
-  #hintLabel{ font-size:11px; color:var(--text-3); margin-top:-4px; margin-bottom:10px; display:none; }
+/* chapters manager */
+.ch-row{display:flex;align-items:center;gap:8px;padding:10px 12px;
+  background:var(--surface-2);border-radius:var(--r-md);}
+.ch-row .ch-name-text{flex:1;font-size:14px;}
+.ch-row .ch-cnt{font-size:12px;color:var(--text-3);margin-right:4px;}
 
-  #diffPanel{ display:none; margin-bottom:12px; padding:10px 12px; background: var(--surface-2); border-radius: var(--radius-md); }
-  #diffPanel .row{ font-size:15px; font-family: ui-monospace, "SF Mono", monospace; margin-bottom:4px; }
-  .diff-wrong{ background: var(--danger-bg); color: var(--danger-text); border-radius:2px; }
-  .diff-right{ background: var(--success-bg); color: var(--success-text); border-radius:2px; }
-  .diff-actions{ display:flex; gap:8px; margin-top:10px; }
-  .btn-ok{ color: var(--success); border-color: var(--success); }
-  .btn-ng{ color: var(--danger); border-color: var(--danger); }
+/* add card form */
+.form-label{font-size:12px;color:var(--text-2);display:block;margin-bottom:4px;}
+.form-row{margin-bottom:10px;}
+.add-mode-tabs{display:flex;gap:8px;margin-bottom:12px;}
+.add-mode-btn{flex:1;font-size:13px;padding:8px;}
+.add-mode-btn.active{border-color:var(--info);background:var(--info-bg);color:var(--info-text);}
+.add-pane{display:none;}.add-pane.active{display:block;}
+textarea.bulk-ta{width:100%;min-height:130px;font-family:ui-monospace,"SF Mono",monospace;
+  font-size:13px;padding:10px 12px;border-radius:var(--r-md);border:1px solid var(--border-strong);
+  background:var(--surface);color:var(--text);resize:vertical;line-height:1.6;}
+textarea.bulk-ta:focus{outline:2px solid var(--info);outline-offset:-1px;}
 
-  .action-row{ display:flex; gap:8px; }
-  .action-row button{ flex:1; font-weight:500; }
+/* export */
+textarea.export-ta{width:100%;min-height:130px;font-family:ui-monospace,"SF Mono",monospace;
+  font-size:12px;padding:10px 12px;border-radius:var(--r-md);border:1px solid var(--border-strong);
+  background:var(--surface-2);color:var(--text);resize:vertical;line-height:1.6;}
+.collapsible-hdr{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:2px 0;}
+.collapsible-hdr .title{font-size:14px;font-weight:500;}
+.chevron{transition:transform 0.2s;font-size:14px;}
+.chevron.open{transform:rotate(180deg);}
 
-  .footer-hint{ margin-top:10px; font-size:12px; color:var(--text-3); text-align:center; }
-
-  .add-toggle{ display:flex; align-items:center; justify-content:space-between; cursor:pointer; }
-  .add-toggle .title{ font-size:15px; font-weight:500; }
-  .chevron{ transition: transform 0.2s ease; font-size:14px; }
-  .chevron.open{ transform: rotate(180deg); }
-
-  .form-label{ font-size:12px; color:var(--text-2); display:block; margin-bottom:4px; }
-  .form-row{ margin-bottom:10px; }
-
-  .check-row{ display:flex; align-items:center; gap:6px; font-size:13px; margin-bottom:10px; cursor:pointer; }
-  .check-row input{ width:auto; height:auto; }
-
-  .list-row{
-    display:flex; justify-content:space-between; align-items:center; gap:8px;
-    padding:8px 10px; background: var(--surface-2); border-radius: var(--radius-md);
-  }
-  .list-row .text{ font-size:13px; overflow:hidden; flex:1; min-width:0; }
-  .list-row .text .ko{ font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .list-row .text .en{ color: var(--text-2); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .list-row .btns{ display:flex; gap:4px; flex-shrink:0; }
-  .icon-btn{ padding:4px 8px; line-height:1; font-size:16px; }
-  .icon-btn.bookmarked{ color: var(--warning); }
-
-  #fxLayer{ position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:visible; z-index:50; }
-
-  .section-title{ font-size:13px; font-weight:500; margin-bottom:8px; }
-  .empty-state{ font-size:13px; color:var(--text-3); text-align:center; padding:24px 0; }
-
-  .pane{ display:none; }
-  .pane.active{ display:block; }
-
-  .install-banner{
-    display:none; align-items:center; gap:10px; padding:10px 12px; margin-bottom:12px;
-    background: var(--info-bg); color: var(--info-text); border-radius: var(--radius-md); font-size:13px;
-  }
-  .install-banner button{ background:transparent; border:1px solid var(--info-text); color:var(--info-text); font-size:12px; padding:6px 10px; flex-shrink:0; }
-
-  .quiz-top-row{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
-  .quiz-top-row .cancel-link{
-    background:transparent; border:none; color: var(--text-3); font-size:13px; padding:6px 4px;
-  }
-
-  .modal-overlay{
-    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45);
-    align-items:center; justify-content:center; z-index:200; padding:20px;
-  }
-  .modal-overlay.show{ display:flex; }
-  .modal-box{
-    background: var(--surface); border-radius: var(--radius-lg); padding:20px;
-    max-width:360px; width:100%;
-  }
-  .modal-box h3{ font-size:16px; margin-bottom:8px; }
-  .modal-box p{ font-size:13px; color: var(--text-2); line-height:1.6; margin-bottom:18px; }
-  .modal-actions{ display:flex; gap:8px; }
-  .modal-actions button{ flex:1; font-weight:500; }
-  .modal-actions .danger-btn{ color: var(--danger); border-color: var(--danger); }
-
-  textarea#bulkInput{
-    width:100%; min-height:140px; font-family: ui-monospace, "SF Mono", monospace; font-size:13px;
-    padding:10px 12px; border-radius: var(--radius-md); border:1px solid var(--border-strong);
-    background: var(--surface); color: var(--text); resize: vertical; line-height:1.6;
-  }
-  textarea#bulkInput:focus{ outline: 2px solid var(--info); outline-offset:-1px; }
-  .bulk-result{ font-size:12px; margin-top:8px; white-space:pre-line; }
-  .add-mode-tabs{ display:flex; gap:8px; margin-bottom:12px; }
-  .add-mode-btn{ flex:1; font-size:13px; padding:8px; }
-  .add-mode-btn.active{ border-color: var(--info); background: var(--info-bg); color: var(--info-text); }
-  .add-pane{ display:none; }
-  .add-pane.active{ display:block; }
-
-  .tabs-3{ display:flex; gap:6px; margin-bottom:14px; }
-  .tabs-3 .tab-btn{ font-size:13px; padding:9px 6px; }
-  .tabs-4{ display:flex; gap:5px; margin-bottom:14px; }
-  .tabs-4 .tab-btn{ font-size:12px; padding:9px 4px; }
-
-  .due-tag{ font-size:11px; padding:2px 8px; border-radius: var(--radius-md); white-space:nowrap; flex-shrink:0; }
-  .due-tag.due-now{ background: var(--success-bg); color: var(--success-text); }
-  .due-tag.due-soon{ background: var(--warning-bg); color: var(--warning); }
-  .due-tag.due-later{ background: var(--surface-2); color: var(--text-3); }
-  .due-tag.due-new{ background: var(--info-bg); color: var(--info-text); }
-
-  .list-row.with-due{ flex-wrap:wrap; }
-  .list-row .text2{ font-size:13px; flex:1; min-width:0; }
-  .list-row .text2 .ko{ font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .list-row .text2 .en{ color: var(--text-2); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-
-  .settings-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0; border-bottom:1px solid var(--border); }
-  .settings-row:last-child{ border-bottom:none; }
-  .settings-row .label{ font-size:14px; }
-  .settings-row .sub{ font-size:12px; color:var(--text-3); margin-top:2px; }
-  .volume-row{ display:flex; align-items:center; gap:10px; }
-  .volume-row input[type="range"]{ width:140px; }
-  .volume-row span{ font-size:13px; color:var(--text-2); min-width:32px; text-align:right; }
-
-  .stepper{ display:flex; align-items:center; gap:8px; }
-  .stepper button{ width:32px; height:32px; padding:0; font-size:16px; line-height:1; }
-  .stepper .val{ font-size:14px; min-width:64px; text-align:center; }
-
-  .export-box textarea{
-    width:100%; min-height:140px; font-family: ui-monospace, "SF Mono", monospace; font-size:12px;
-    padding:10px 12px; border-radius: var(--radius-md); border:1px solid var(--border-strong);
-    background: var(--surface-2); color: var(--text); resize: vertical; line-height:1.6;
-  }
-
-  .urgency-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:14px; }
-  .urgency-card{ border-radius: var(--radius-lg); padding:14px 12px; text-align:center; }
-  .urgency-card .num{ font-size:32px; font-weight:500; line-height:1.1; }
-  .urgency-card .label{ font-size:12px; margin-top:4px; }
-  .urgency-card.overdue{ background: var(--danger-bg); }
-  .urgency-card.overdue .num{ color: var(--danger-text); }
-  .urgency-card.overdue .label{ color: var(--danger-text); opacity:0.85; }
-  .urgency-card.soon{ background: var(--warning-bg); }
-  .urgency-card.soon .num{ color: var(--warning); }
-  .urgency-card.soon .label{ color: var(--warning); opacity:0.85; }
-
-  /* full card list (no truncation) + edit/select mode */
-  .full-card-row{
-    display:flex; align-items:flex-start; gap:10px; padding:12px; background: var(--surface-2);
-    border-radius: var(--radius-md);
-  }
-  .full-card-row .checkbox-wrap{ flex-shrink:0; padding-top:2px; display:none; }
-  .full-card-row.edit-mode .checkbox-wrap{ display:block; }
-  .full-card-row input[type="checkbox"]{ width:18px; height:18px; }
-  .full-card-row .content{ flex:1; min-width:0; }
-  .full-card-row .content .ko{ font-size:14px; font-weight:500; line-height:1.5; word-break:break-word; }
-  .full-card-row .content .en{ font-size:13px; color:var(--text-2); line-height:1.5; word-break:break-word; margin-top:2px; }
-  .full-card-row .content .meta{ margin-top:6px; display:flex; gap:6px; flex-wrap:wrap; }
-  .full-card-row .right-btns{ flex-shrink:0; display:flex; flex-direction:column; gap:4px; }
-
-  .all-cards-toolbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; gap:8px; }
-  .all-cards-toolbar .search-input{ flex:1; }
-  .edit-toolbar{
-    display:none; align-items:center; justify-content:space-between; gap:8px;
-    margin-bottom:10px; padding:10px 12px; background: var(--surface-2); border-radius: var(--radius-md);
-  }
-  .edit-toolbar.show{ display:flex; }
-  .edit-toolbar .left{ display:flex; align-items:center; gap:8px; font-size:13px; }
-  .edit-toolbar button{ font-size:13px; padding:7px 10px; }
-  .edit-toolbar .delete-selected-btn{ color: var(--danger); border-color: var(--danger); }
-  .edit-toolbar .delete-selected-btn:disabled{ opacity:0.35; }
-
-  .sort-btn, .toggle-btn{
-    border-radius: var(--radius-md);
-    border: 1px solid var(--border-strong);
-    background: var(--surface);
-    color: var(--text-2);
-  }
-  .sort-btn.active{ border-color: var(--info); background: var(--info-bg); color: var(--info-text); }
-  .toggle-btn.active{ border-color: var(--success); background: var(--success-bg); color: var(--success-text); }
-  .toggle-btn:not(.active){ opacity: 0.55; }
+/* modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);
+  align-items:center;justify-content:center;z-index:200;padding:20px;}
+.modal-overlay.show{display:flex;}
+.modal-box{background:var(--surface);border-radius:var(--r-lg);padding:20px;max-width:360px;width:100%;}
+.modal-box h3{font-size:16px;margin-bottom:8px;}
+.modal-box p{font-size:13px;color:var(--text-2);line-height:1.6;margin-bottom:18px;}
+.modal-actions{display:flex;gap:8px;}
+.modal-actions button{flex:1;font-weight:500;}
+.modal-danger{color:var(--danger);border-color:var(--danger);}
 </style>
 </head>
 <body>
-<div id="app">
+<div id="appOuter" style="position:relative;">
+<div id="app" style="max-width:480px;margin:0 auto;">
 
-  <div class="install-banner" id="installBanner">
-    <span style="flex:1;">홈 화면에 추가하면 앱처럼 쓸 수 있어요</span>
-    <button id="installBtn">설치</button>
-  </div>
-
-  <!-- ============ SETUP SCREEN ============ -->
+  <!-- ===== SETUP SCREEN ===== -->
   <div id="setupScreen">
-    <div class="header"><h1>영어 템플릿 암기</h1></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <h1 style="font-size:20px;">영어 템플릿 암기</h1>
+    </div>
 
     <div class="urgency-grid">
-      <div class="urgency-card overdue">
-        <div class="num" id="overdueCount">0</div>
-        <div class="label">지금 밀린 카드</div>
-      </div>
-      <div class="urgency-card soon">
-        <div class="num" id="dueSoonCount">0</div>
-        <div class="label">내일까지 돌아올 카드</div>
-      </div>
+      <div class="urg-card overdue"><div class="num" id="overdueCount">0</div><div class="lbl">지금 밀린 카드</div></div>
+      <div class="urg-card soon"><div class="num" id="dueSoonCount">0</div><div class="lbl">내일까지 돌아올 카드</div></div>
     </div>
 
-    <div class="tabs tabs-4">
-      <button id="tabQuiz" class="tab-btn active">학습</button>
-      <button id="tabBookmark" class="tab-btn">★ 북마크 (<span id="bookmarkTabCount">0</span>)</button>
-      <button id="tabAllCards" class="tab-btn">전체 문장 (<span id="allCardsTabCount">0</span>)</button>
-      <button id="tabSettings" class="tab-btn">⚙ 설정</button>
+    <div class="main-tabs">
+      <button class="main-tab active" id="tabQuiz">학습</button>
+      <button class="main-tab" id="tabAllCards">전체 문장</button>
+      <button class="main-tab" id="tabAdd">카드 추가</button>
+      <button class="main-tab" id="tabSettings">⚙ 설정</button>
     </div>
 
-    <div id="quizSetupPane" class="pane active">
+    <!-- QUIZ PANE -->
+    <div class="pane active" id="quizPane">
       <div class="card" style="margin-bottom:12px;">
-        <h2 style="font-size:16px; margin-bottom:4px;">오늘 몇 문제 풀까요?</h2>
-        <p class="muted" style="margin-bottom:14px;">복습 기한이 지난 카드 중, 임박한 순서로 출제됩니다.</p>
+        <h2 style="font-size:16px;margin-bottom:4px;">오늘 몇 문제 풀까요?</h2>
+        <p class="muted" style="margin-bottom:12px;">복습 기한이 지난 카드 중 임박한 순서로 출제됩니다.</p>
         <div class="hint-box" id="availInfo"></div>
 
+        <div style="font-size:13px;font-weight:500;margin-bottom:8px;">챕터 선택 <span style="font-size:12px;color:var(--text-3);">(복수 선택 가능)</span></div>
+        <div class="chapter-select-list" id="chapterSelectList"></div>
+
         <div class="count-grid" id="countOptions"></div>
-        <div class="custom-count-row">
+        <div class="custom-row">
           <input type="number" id="customCountInput" placeholder="직접 입력" min="1" inputmode="numeric" />
           <button id="customCountBtn" style="white-space:nowrap;">이 개수로</button>
         </div>
-        <p class="muted" id="customCountHint" style="margin-bottom:10px;"></p>
+        <p class="muted" id="customCountHint" style="margin-bottom:8px;"></p>
         <p class="muted" id="newCardRatioInfo" style="margin-bottom:10px;"></p>
 
-        <div style="margin-bottom:14px; padding:10px 12px; background:var(--surface-2); border-radius:var(--radius-md);">
-          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-            <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
-              <input type="checkbox" id="ngFilterCheck" style="width:auto;" />
-              재도전 누적
-            </label>
-            <input type="number" id="ngFilterCount" value="3" min="1" max="999" inputmode="numeric"
-              style="width:56px; height:32px; font-size:13px; padding:0 8px;" />
-            <span style="font-size:13px; color:var(--text-2);">회 이상인 문제만 출제</span>
-          </div>
-          <p class="muted" id="ngFilterInfo" style="margin-top:6px; min-height:14px;"></p>
-        </div>
-
-        <button id="startBtn" style="width:100%; font-weight:500;">시작하기</button>
-      </div>
-
-      <div class="card">
-        <div class="add-toggle" id="addToggle">
-          <div class="title">+ 카드 추가</div>
-          <span class="chevron" id="addChevron">▾</span>
-        </div>
-        <div id="addForm" style="display:none; margin-top:12px;">
-
-          <div class="add-mode-tabs">
-            <button type="button" class="add-mode-btn active" id="addModeSingle">한 개씩 입력</button>
-            <button type="button" class="add-mode-btn" id="addModeBulk">엑셀에서 붙여넣기</button>
-          </div>
-
-          <div id="addPaneSingle" class="add-pane active">
-            <div class="form-row">
-              <label class="form-label">한국어 뜻</label>
-              <input type="text" id="newKo" placeholder="예: 검토 부탁드립니다" />
-            </div>
-            <div class="form-row">
-              <label class="form-label">영어 정답</label>
-              <input type="text" id="newEn" placeholder="예: please review this" />
-            </div>
-            <label class="check-row"><input type="checkbox" id="newBookmark" />추가하면서 북마크하기</label>
-            <button id="addCardBtn" style="width:100%; font-weight:500;">카드 추가하기</button>
-            <p class="muted" id="addFeedback" style="margin-top:8px; min-height:16px;"></p>
-          </div>
-
-          <div id="addPaneBulk" class="add-pane">
-            <p class="muted" style="margin-bottom:8px;">
-              엑셀이나 구글시트에서 <strong>한국어 뜻 열</strong>과 <strong>영어 정답 열</strong> 두 칸을 같이 드래그해서 복사한 다음, 아래 칸에 그대로 붙여넣으세요. 한 줄에 한 문장씩 자동으로 들어갑니다.
-            </p>
-            <textarea id="bulkInput" placeholder="도와주셔서 감사합니다	thank you for your help&#10;이건 제 잘못이었어요	this was my fault"></textarea>
-            <button id="bulkAddBtn" style="width:100%; font-weight:500; margin-top:10px;">붙여넣은 내용 전체 추가하기</button>
-            <div class="bulk-result" id="bulkResult"></div>
-          </div>
-
-        </div>
-        <div style="margin-top:10px;">
-          <div class="section-title">전체 카드 (<span id="cardListCount">0</span>개)</div>
-          <div id="cardList" style="max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;"></div>
-        </div>
-
-        <div class="export-box" style="margin-top:14px; border-top:1px solid var(--border); padding-top:14px;">
-          <div class="add-toggle" id="exportToggle">
-            <div class="title" style="font-size:14px;">⧉ 전체 문장 엑셀로 복사하기</div>
-            <span class="chevron" id="exportChevron">▾</span>
-          </div>
-          <div id="exportPane" style="display:none; margin-top:10px;">
-            <p class="muted" style="margin-bottom:8px;">아래 칸 전체를 복사(누르고 전체선택 후 Ctrl+C)해서 엑셀에 붙여넣으면 한국어/영어 두 열로 펼쳐져요. 새 문장 추가하기 전에 중복 확인용으로 쓰세요.</p>
-            <textarea id="exportTextarea" readonly></textarea>
-            <button id="exportCopyBtn" style="width:100%; font-weight:500; margin-top:8px;">전체 복사하기</button>
-            <p class="muted" id="exportCopyFeedback" style="margin-top:6px; min-height:16px;"></p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="bookmarkPane" class="pane">
-      <div class="card">
-        <h2 style="font-size:15px; margin-bottom:4px;">★ 북마크한 문장</h2>
-        <p class="muted" style="margin-bottom:12px;">오답으로 막혔던 표현이나 직접 표시한 카드 모음</p>
-        <div id="bookmarkList" style="display:flex; flex-direction:column; gap:6px;"></div>
-        <div id="bookmarkEmpty" class="empty-state" style="display:none;">아직 북마크한 문장이 없어요</div>
-      </div>
-    </div>
-
-    <div id="allCardsPane" class="pane">
-      <div class="card">
-        <div class="all-cards-toolbar">
-          <h2 style="font-size:15px;">전체 문장 (<span id="allCardsCount">0</span>개)</h2>
-          <button type="button" id="editModeToggleBtn" style="font-size:13px; padding:7px 12px;">편집</button>
-        </div>
-        <input type="text" id="allCardsSearch" class="search-input" placeholder="한국어 또는 영어로 검색" style="margin-bottom:10px;" />
-
-        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; align-items:center;">
-          <span style="font-size:12px; color:var(--text-3);">정렬</span>
-          <button type="button" class="sort-btn active" id="sortAdded" style="font-size:12px; padding:5px 10px;">추가순</button>
-          <button type="button" class="sort-btn" id="sortNg" style="font-size:12px; padding:5px 10px;">재도전 많은순</button>
-          <button type="button" class="sort-btn" id="sortAlpha" style="font-size:12px; padding:5px 10px;">알파벳순</button>
-          <span style="font-size:12px; color:var(--text-3); margin-left:4px;">표시</span>
-          <button type="button" class="toggle-btn active" id="toggleKo" style="font-size:12px; padding:5px 10px;">한국어</button>
-          <button type="button" class="toggle-btn active" id="toggleEn" style="font-size:12px; padding:5px 10px;">영어</button>
-        </div>
-
-        <div class="edit-toolbar" id="editToolbar">
-          <label class="left">
-            <input type="checkbox" id="selectAllCheckbox" style="width:16px; height:16px;" />
-            전체 선택 (<span id="selectedCount">0</span>개 선택됨)
+        <div class="ng-filter-box">
+          <label>
+            <input type="checkbox" id="ngFilterCheck" />
+            재도전 누적
+            <input type="number" id="ngFilterCount" value="3" min="1" max="999" inputmode="numeric" />
+            회 이상인 문제만 출제
           </label>
-          <button type="button" id="deleteSelectedBtn" class="delete-selected-btn" disabled>선택 삭제</button>
+          <p class="muted" id="ngFilterInfo" style="margin-top:6px;min-height:14px;"></p>
         </div>
 
-        <div id="allCardsList" style="display:flex; flex-direction:column; gap:8px; max-height:520px; overflow-y:auto;"></div>
+        <button id="startBtn" style="width:100%;font-weight:500;">시작하기</button>
+        <button id="simulateBtn" style="width:100%;font-weight:500;margin-top:8px;font-size:12px;color:var(--text-3);">데모: 시간 빠르게(1일)</button>
+      </div>
+    </div>
+
+    <!-- ALL CARDS PANE -->
+    <div class="pane" id="allCardsPane">
+      <div class="card">
+        <div class="ac-toolbar">
+          <h2>전체 문장 (<span id="allCardsCount">0</span>개)</h2>
+          <button type="button" id="sortAdded" class="sort-btn active">추가순</button>
+          <button type="button" id="sortNg" class="sort-btn">오답순</button>
+          <button type="button" id="sortAlpha" class="sort-btn">알파벳순</button>
+        </div>
+        <div class="ac-toolbar" style="margin-bottom:10px;">
+          <button type="button" id="toggleKo" class="toggle-btn active">한국어</button>
+          <button type="button" id="toggleEn" class="toggle-btn active">영어</button>
+          <button type="button" id="ngBulkBtn" class="ng-bulk-btn" style="font-size:12px;padding:5px 10px;" disabled>오답 처리</button>
+          <button type="button" id="delBulkBtn" class="del-bulk-btn" style="font-size:12px;padding:5px 10px;" disabled>삭제</button>
+        </div>
+        <input type="text" id="allCardsSearch" placeholder="한국어 또는 영어로 검색" style="margin-bottom:10px;" />
+        <div class="chip-row" id="acChapterFilter"></div>
+        <div id="allCardsList" style="display:flex;flex-direction:column;gap:8px;max-height:540px;overflow-y:auto;"></div>
         <div id="allCardsEmpty" class="empty-state" style="display:none;">저장된 문장이 없어요</div>
       </div>
     </div>
 
-    <div id="settingsPane" class="pane">
-      <div class="card">
-        <h2 style="font-size:15px; margin-bottom:8px;">⚙ 설정</h2>
-
-        <div class="settings-row">
-          <div>
-            <div class="label">정답 효과음 음량</div>
-            <div class="sub">오답일 때는 소리가 나지 않아요</div>
-          </div>
-          <div class="volume-row">
-            <input type="range" id="volumeSlider" min="0" max="200" step="5" value="100" />
-            <span id="volumeValue">80%</span>
-          </div>
+    <!-- ADD CARD PANE -->
+    <div class="pane" id="addPane">
+      <div class="card" style="margin-bottom:12px;">
+        <h2 style="font-size:15px;margin-bottom:12px;">카드 추가</h2>
+        <div class="add-mode-tabs">
+          <button type="button" class="add-mode-btn active" id="addModeSingle">한 개씩</button>
+          <button type="button" class="add-mode-btn" id="addModeBulk">엑셀 붙여넣기</button>
         </div>
 
-        <div class="settings-row">
-          <div>
-            <div class="label">새 카드 출제 비율</div>
-            <div class="sub">한 번도 안 푼 카드를 몇 문제당 1개씩 섞을지</div>
+        <div class="add-pane active" id="addPaneSingle">
+          <div class="form-row">
+            <label class="form-label">챕터 선택</label>
+            <select id="addChapterSelect" style="width:100%;height:40px;border-radius:var(--r-md);border:1px solid var(--border-strong);background:var(--surface);color:var(--text);font-size:14px;padding:0 10px;font-family:inherit;"></select>
           </div>
+          <div class="form-row"><label class="form-label">한국어 뜻</label><input type="text" id="newKo" placeholder="예: 검토 부탁드립니다" /></div>
+          <div class="form-row"><label class="form-label">영어 정답</label><input type="text" id="newEn" placeholder="예: please review this" /></div>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:10px;cursor:pointer;"><input type="checkbox" id="newBookmark" style="width:auto;" />북마크하기</label>
+          <button id="addCardBtn" style="width:100%;font-weight:500;">카드 추가하기</button>
+          <p class="muted" id="addFeedback" style="margin-top:8px;min-height:16px;"></p>
+        </div>
+
+        <div class="add-pane" id="addPaneBulk">
+          <div class="form-row">
+            <label class="form-label">챕터 선택</label>
+            <select id="bulkChapterSelect" style="width:100%;height:40px;border-radius:var(--r-md);border:1px solid var(--border-strong);background:var(--surface);color:var(--text);font-size:14px;padding:0 10px;font-family:inherit;"></select>
+          </div>
+          <p class="muted" style="margin-bottom:8px;">엑셀에서 한국어·영어 두 열을 복사해서 그대로 붙여넣으세요.</p>
+          <textarea class="bulk-ta" id="bulkInput" placeholder="도와주셔서 감사합니다&#9;thank you for your help&#10;이건 제 잘못이었어요&#9;this was my fault"></textarea>
+          <button id="bulkAddBtn" style="width:100%;font-weight:500;margin-top:10px;">전체 추가하기</button>
+          <p class="muted" id="bulkResult" style="margin-top:8px;min-height:16px;"></p>
+        </div>
+      </div>
+
+      <!-- export -->
+      <div class="card">
+        <div class="collapsible-hdr" id="exportToggle">
+          <div class="title">⧉ 전체 문장 엑셀로 복사</div>
+          <span class="chevron" id="exportChevron">▾</span>
+        </div>
+        <div id="exportPane" style="display:none;margin-top:12px;">
+          <p class="muted" style="margin-bottom:8px;">전체 카드를 한국어/영어 탭 구분으로 내보냅니다. 붙여넣기 후 엑셀에서 확인하세요.</p>
+          <textarea class="export-ta" id="exportTextarea" readonly></textarea>
+          <button id="exportCopyBtn" style="width:100%;font-weight:500;margin-top:8px;">전체 복사하기</button>
+          <p class="muted" id="exportCopyFeedback" style="margin-top:6px;min-height:16px;"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS PANE -->
+    <div class="pane" id="settingsPane">
+      <div class="card" style="margin-bottom:12px;">
+        <h2 style="font-size:15px;margin-bottom:8px;">⚙ 설정</h2>
+        <div class="srow">
+          <div><div class="slbl">정답 효과음 음량</div><div class="ssub">오답은 무음</div></div>
+          <div class="vol-row">
+            <input type="range" id="volumeSlider" min="0" max="200" step="5" value="100" />
+            <span id="volumeValue">100%</span>
+          </div>
+        </div>
+        <div class="srow">
+          <div><div class="slbl">새 카드 출제 비율</div><div class="ssub">N문제당 1개 새 카드 섞기</div></div>
           <div class="stepper">
             <button type="button" id="ratioMinus">−</button>
             <div class="val" id="ratioValue">5문제당 1개</div>
@@ -488,29 +353,38 @@
           </div>
         </div>
       </div>
-    </div>
-  </div>
 
-  <!-- ============ QUIZ SCREEN ============ -->
+      <div class="card">
+        <h2 style="font-size:15px;margin-bottom:12px;">📁 챕터 관리</h2>
+        <div id="chapterManagerList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="newChapterName" placeholder="새 챕터 이름" style="flex:1;" />
+          <button type="button" id="addChapterBtn" style="white-space:nowrap;">추가</button>
+        </div>
+        <p class="muted" id="chapterFeedback" style="margin-top:8px;min-height:16px;"></p>
+      </div>
+    </div>
+
+  </div><!-- end setupScreen -->
+
+  <!-- ===== QUIZ SCREEN ===== -->
   <div id="quizScreen" style="display:none;">
-    <div class="quiz-top-row">
+    <div class="quiz-top">
       <button type="button" class="cancel-link" id="cancelSessionBtn">← 취소하고 홈으로</button>
     </div>
     <div class="stats-bar">
-      <div class="stat"><div class="label">정답 처리</div><div class="value" id="progressCount">0/0</div></div>
-      <div class="stat"><div class="label">연속 정답</div><div class="value" id="streakCount" style="color:var(--info);">0</div></div>
-      <div class="stat"><div class="label">미처리 남음</div><div class="value" id="remainingCount" style="color:var(--warning);">0</div></div>
+      <div class="stat"><div class="lbl">정답 처리</div><div class="val" id="progressCount">0/0</div></div>
+      <div class="stat"><div class="lbl">연속 정답</div><div class="val" id="streakCount" style="color:var(--info);">0</div></div>
+      <div class="stat"><div class="lbl">미처리 남음</div><div class="val" id="remainingCount" style="color:var(--warning);">0</div></div>
     </div>
-
     <div class="card" id="quizCard">
       <div class="badge" id="boxBadge">새 카드</div>
       <div id="koreanText"></div>
-
       <div id="hintText"></div>
       <div id="hintLabel"></div>
-
-      <input type="text" id="answerInput" placeholder="영어로 입력하세요" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="margin-bottom:12px;" />
-
+      <input type="text" id="answerInput" placeholder="영어로 입력하세요"
+        autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
+        style="margin-bottom:12px;" />
       <div id="diffPanel">
         <p class="muted" style="margin-bottom:6px;">오타 가능성 — 직접 판정해주세요 (Enter = 정답)</p>
         <div class="row" id="diffYour"></div>
@@ -520,42 +394,51 @@
           <button id="markWrongBtn" class="btn-ng">오답으로 처리</button>
         </div>
       </div>
-
       <div class="action-row">
         <button id="checkBtn" style="font-weight:500;">확인</button>
-        <button id="nextBtn" style="display:none; font-weight:500;">다음 →</button>
+        <button id="nextBtn" style="display:none;font-weight:500;">다음 →</button>
       </div>
-
-      <svg id="fxLayer"></svg>
     </div>
-
-    <div class="footer-hint">Enter로 확인, 다음 카드로 이동</div>
+    <div class="footer-hint">Enter로 확인 · 다음 카드로 이동</div>
   </div>
 
-  <!-- ============ DONE SCREEN ============ -->
+  <!-- ===== DONE SCREEN ===== -->
   <div id="doneScreen" style="display:none;">
     <div class="card">
-      <h2 style="font-size:18px; margin-bottom:4px; text-align:center;">세션 완료</h2>
-      <p class="muted" id="doneSummary" style="margin-bottom:16px; text-align:center;"></p>
-
+      <h2 style="font-size:18px;margin-bottom:4px;text-align:center;">세션 완료</h2>
+      <p class="muted" id="doneSummary" style="margin-bottom:16px;text-align:center;"></p>
       <div id="missedWrap" style="display:none;">
-        <div class="section-title" style="border-top:1px solid var(--border); padding-top:14px;">이번에 힘들었던 문장</div>
-        <div id="missedList" style="display:flex; flex-direction:column; gap:6px; margin-bottom:16px;"></div>
+        <div style="font-size:13px;font-weight:500;margin-bottom:8px;border-top:1px solid var(--border);padding-top:14px;">이번에 힘들었던 문장</div>
+        <div id="missedList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;"></div>
       </div>
-
-      <button id="restartBtn" style="width:100%; font-weight:500;">설정으로 돌아가기</button>
+      <button id="restartBtn" style="width:100%;font-weight:500;">설정으로 돌아가기</button>
     </div>
   </div>
 
-</div>
+</div><!-- end #app -->
 
+<svg id="fxLayer" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:50;"></svg>
+</div><!-- end appOuter -->
+
+<!-- modals -->
 <div class="modal-overlay" id="cancelModal">
   <div class="modal-box">
     <h3>세션을 취소할까요?</h3>
-    <p>지금까지 정답·오답으로 결과가 나온 문제들은 그 결과 그대로 각자의 복습 일정에 반영됩니다 (정답은 15분 뒤 또는 1일 뒤부터, 오답은 1일 뒤부터). 아직 풀지 않은 나머지 문제들은 원래 복습 일정 그대로 유지되어 손해 없이 다음에 다시 풀 수 있어요.</p>
+    <p>지금까지 결과가 나온 문제들은 각자의 복습 일정에 반영됩니다. 아직 풀지 않은 나머지 문제들은 원래 복습 일정 그대로 유지됩니다.</p>
     <div class="modal-actions">
       <button type="button" id="cancelModalBack">계속 풀기</button>
-      <button type="button" id="cancelModalConfirm" class="danger-btn">취소하고 홈으로</button>
+      <button type="button" id="cancelModalConfirm" class="modal-danger">취소하고 홈으로</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="renameModal">
+  <div class="modal-box">
+    <h3>챕터 이름 변경</h3>
+    <input type="text" id="renameInput" style="margin-bottom:14px;" />
+    <div class="modal-actions">
+      <button type="button" id="renameCancel">취소</button>
+      <button type="button" id="renameConfirm" style="border-color:var(--info);color:var(--info);">변경</button>
     </div>
   </div>
 </div>
