@@ -36,9 +36,14 @@
 
   // all-cards tab state
   var allCardsEditMode = false;
-  var allCardsSelectedIds = {}; // id -> true
+  var allCardsSelectedIds = {};
   var allCardsSearchQuery = '';
+  var allCardsSortMode = 'added'; // 'added' | 'ng' | 'alpha'
+  var allCardsShowKo = true;
+  var allCardsShowEn = true;
+
   var sessionMissedIds = [];
+  var retryQueue = []; // cards that were marked 'hard' (NG) - appended to the back of the session for one more attempt
 
   var settings = { volume: 100, newCardRatio: 5 }; // volume 0-200 (%), newCardRatio: 1 new card per N questions
 
@@ -56,6 +61,7 @@
             if(typeof c.everAnswered !== 'boolean'){
               c.everAnswered = (c.stage || 0) > 0;
             }
+            if(typeof c.ngCount !== 'number') c.ngCount = 0;
           });
           nextId = parsed.nextId || (cards.reduce(function(m,c){ return Math.max(m, c.id); }, 0) + 1);
           return;
@@ -64,34 +70,9 @@
     }catch(e){}
     // first run: seed with sample deck
     cards = seedDeck.map(function(d){
-      return { id: nextId++, ko: d.ko, en: d.en, stage: 0, dueAt: Date.now(), bookmarked: false, everAnswered: false };
+      return { id: nextId++, ko: d.ko, en: d.en, stage: 0, dueAt: Date.now(), bookmarked: false, everAnswered: false, ngCount: 0 };
     });
     saveCards();
-  }
-
-  function saveCards(){
-    try{
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ cards: cards, nextId: nextId }));
-    }catch(e){}
-  }
-
-  function loadSettings(){
-    try{
-      var raw = localStorage.getItem(SETTINGS_KEY);
-      if(raw){
-        var parsed = JSON.parse(raw);
-        if(parsed){
-          if(typeof parsed.volume === 'number') settings.volume = parsed.volume;
-          if(typeof parsed.newCardRatio === 'number') settings.newCardRatio = parsed.newCardRatio;
-        }
-      }
-    }catch(e){}
-  }
-
-  function saveSettings(){
-    try{
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-    }catch(e){}
   }
 
   function now(){ return Date.now(); }
@@ -199,7 +180,33 @@
         'This usually means a cached old version of index.html is loaded; hard-refresh or reinstall the app.');
       return;
     }
+
     el.addEventListener(event, handler);
+  }
+
+  function saveCards(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ cards: cards, nextId: nextId }));
+    }catch(e){}
+  }
+
+  function loadSettings(){
+    try{
+      var raw = localStorage.getItem(SETTINGS_KEY);
+      if(raw){
+        var parsed = JSON.parse(raw);
+        if(parsed){
+          if(typeof parsed.volume === 'number') settings.volume = parsed.volume;
+          if(typeof parsed.newCardRatio === 'number') settings.newCardRatio = parsed.newCardRatio;
+        }
+      }
+    }catch(e){}
+  }
+
+  function saveSettings(){
+    try{
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    }catch(e){}
   }
 
   // ---------- tabs ----------
@@ -252,10 +259,19 @@
     $('allCardsCount').textContent = cards.length;
 
     var q = allCardsSearchQuery.trim().toLowerCase();
-    var visibleCards = cards.slice().reverse().filter(function(c){
+    var visibleCards = cards.slice().filter(function(c){
       if(!q) return true;
       return c.ko.toLowerCase().indexOf(q) !== -1 || c.en.toLowerCase().indexOf(q) !== -1;
     });
+
+    // apply sort
+    if(allCardsSortMode === 'added'){
+      visibleCards.reverse(); // newest first (original order is oldest-first)
+    } else if(allCardsSortMode === 'ng'){
+      visibleCards.sort(function(a,b){ return (b.ngCount||0) - (a.ngCount||0); });
+    } else if(allCardsSortMode === 'alpha'){
+      visibleCards.sort(function(a,b){ return a.en.localeCompare(b.en); });
+    }
 
     var listEl = $('allCardsList');
     var emptyEl = $('allCardsEmpty');
@@ -270,16 +286,23 @@
 
     visibleCards.forEach(function(c){
       var status = reviewStatusInfo(c);
+      var ngCount = c.ngCount || 0;
       var row = document.createElement('div');
       row.className = 'full-card-row' + (allCardsEditMode ? ' edit-mode' : '');
 
       var checkboxHtml = '<div class="checkbox-wrap"><input type="checkbox" class="select-cb" data-id="'+c.id+'" '+(allCardsSelectedIds[c.id] ? 'checked' : '')+' /></div>';
+
+      var koHtml = allCardsShowKo ? '<div class="ko">'+escapeHtml(c.ko)+'</div>' : '';
+      var enHtml = allCardsShowEn ? '<div class="en">'+escapeHtml(c.en)+'</div>' : '';
+      var ngBadge = ngCount > 0
+        ? '<span class="due-tag" style="background:var(--danger-bg); color:var(--danger-text);">재도전 '+ngCount+'회</span>'
+        : '';
       var contentHtml =
         '<div class="content">' +
-          '<div class="ko">'+escapeHtml(c.ko)+'</div>' +
-          '<div class="en">'+escapeHtml(c.en)+'</div>' +
+          koHtml + enHtml +
           '<div class="meta">' +
             '<span class="due-tag '+status.cls+'">'+escapeHtml(status.text)+'</span>' +
+            ngBadge +
             (c.bookmarked ? '<span class="due-tag" style="background:var(--warning-bg); color:var(--warning);">★ 북마크</span>' : '') +
           '</div>' +
         '</div>';
@@ -335,6 +358,31 @@
     var checkedCount = $('allCardsList').querySelectorAll('.select-cb:checked').length;
     $('selectAllCheckbox').checked = visibleCount > 0 && checkedCount === visibleCount;
   }
+
+  // sort buttons
+  function setSortMode(mode){
+    allCardsSortMode = mode;
+    ['sortAdded','sortNg','sortAlpha'].forEach(function(id){ $$(id) && $$(id).classList.remove('active'); });
+    var map = { added:'sortAdded', ng:'sortNg', alpha:'sortAlpha' };
+    if($$(map[mode])) $$(map[mode]).classList.add('active');
+    renderAllCardsPane();
+  }
+  function $$(id){ return document.getElementById(id); }
+  on('sortAdded', 'click', function(){ setSortMode('added'); });
+  on('sortNg', 'click', function(){ setSortMode('ng'); });
+  on('sortAlpha', 'click', function(){ setSortMode('alpha'); });
+
+  // show/hide ko and en toggle buttons
+  on('toggleKo', 'click', function(){
+    allCardsShowKo = !allCardsShowKo;
+    $('toggleKo').classList.toggle('active', allCardsShowKo);
+    renderAllCardsPane();
+  });
+  on('toggleEn', 'click', function(){
+    allCardsShowEn = !allCardsShowEn;
+    $('toggleEn').classList.toggle('active', allCardsShowEn);
+    renderAllCardsPane();
+  });
 
   on('editModeToggleBtn', 'click', function(){
     allCardsEditMode = !allCardsEditMode;
@@ -432,6 +480,22 @@
     var dueSoonCount = cards.filter(function(c){ return c.dueAt > t && c.dueAt <= t + ONE_DAY; }).length;
     $('overdueCount').textContent = overdueCount;
     $('dueSoonCount').textContent = dueSoonCount;
+
+    refreshNgFilterInfo();
+  }
+
+  function refreshNgFilterInfo(){
+    var check = $('ngFilterCheck');
+    var infoEl = $('ngFilterInfo');
+    if(!check || !infoEl) return;
+    if(!check.checked){
+      infoEl.textContent = '';
+      return;
+    }
+    var minNg = parseInt($('ngFilterCount').value, 10) || 1;
+    var matched = cards.filter(function(c){ return (c.ngCount||0) >= minNg; }).length;
+    infoEl.textContent = '해당 카드: ' + matched + '개';
+    infoEl.style.color = matched > 0 ? 'var(--success-text)' : 'var(--danger-text)';
   }
 
   function buildCountOptions(maxAvail){
@@ -489,6 +553,9 @@
       $('customCountHint').textContent = val + '문제로 시작합니다';
     }
   });
+
+  on('ngFilterCheck', 'change', function(){ refreshNgFilterInfo(); });
+  on('ngFilterCount', 'input', function(){ if($('ngFilterCheck').checked) refreshNgFilterInfo(); });
 
   // ---------- add card form: toggle open/close ----------
   on('addToggle', 'click', function(){
@@ -574,7 +641,7 @@
       fb.style.color = 'var(--danger-text)';
       return;
     }
-    cards.push({ id: nextId++, ko: ko, en: en, stage: 0, dueAt: now(), bookmarked: bmInp.checked, everAnswered: false });
+    cards.push({ id: nextId++, ko: ko, en: en, stage: 0, dueAt: now(), bookmarked: bmInp.checked, everAnswered: false, ngCount: 0 });
     saveCards();
     koInp.value = ''; enInp.value = ''; bmInp.checked = false;
     fb.textContent = '카드가 추가되었습니다';
@@ -625,7 +692,7 @@
       return;
     }
     parsed.added.forEach(function(item){
-      cards.push({ id: nextId++, ko: item.ko, en: item.en, stage: 0, dueAt: now(), bookmarked: false, everAnswered: false });
+      cards.push({ id: nextId++, ko: item.ko, en: item.en, stage: 0, dueAt: now(), bookmarked: false, everAnswered: false, ngCount: 0 });
     });
     saveCards();
     ta.value = '';
@@ -691,17 +758,34 @@
     return result;
   }
 
+  // Cards filtered by minimum ngCount regardless of due schedule.
+  function buildNgFilterSelection(minNg, n){
+    var filtered = cards.filter(function(c){ return (c.ngCount || 0) >= minNg; });
+    filtered.sort(function(a,b){ return (b.ngCount||0) - (a.ngCount||0); }); // worst first
+    return filtered.slice(0, n);
+  }
+
   function availableCardsCount(){
     return availableCards().length;
   }
 
   function startSession(){
-    var chosen = buildSessionSelection(chosenCount);
+    var useNgFilter = $('ngFilterCheck').checked;
+    var minNg = parseInt($('ngFilterCount').value, 10) || 1;
+    var chosen = useNgFilter
+      ? buildNgFilterSelection(minNg, chosenCount)
+      : buildSessionSelection(chosenCount);
+    if(chosen.length === 0){
+      $('ngFilterInfo').textContent = '해당하는 카드가 없어요';
+      $('ngFilterInfo').style.color = 'var(--danger-text)';
+      return;
+    }
     sessionQueue = chosen.map(function(c){ return c.id; });
     sessionUniqueIds = chosen.map(function(c){ return c.id; });
     sessionDoneCount = 0;
     streak = 0;
     sessionMissedIds = [];
+    retryQueue = [];
     $('setupScreen').style.display = 'none';
     $('quizScreen').style.display = 'block';
     loadNext();
@@ -711,7 +795,12 @@
     var total = sessionUniqueIds.length;
     $('progressCount').textContent = sessionDoneCount + '/' + total;
     $('streakCount').textContent = streak;
-    $('remainingCount').textContent = Math.max(total - sessionDoneCount, 0);
+    // "남음" shows: cards not yet answered in the main queue + NG cards still
+    // waiting in the retry queue for another attempt this session.
+    var mainRemaining = Math.max(total - sessionDoneCount, 0);
+    var retryRemaining = retryQueue.length;
+    var remaining = mainRemaining + retryRemaining;
+    $('remainingCount').textContent = remaining > 0 ? remaining : 0;
   }
 
   function maskWord(word, level){
@@ -766,10 +855,23 @@
     koreanEl.style.color = '';
     hintLevel = 0;
     resetInputUI();
-    if(sessionQueue.length === 0){ finishSession(); return; }
-    var id = sessionQueue.shift();
+
+    // Main queue first, then retry queue (NG cards from this session, kept
+    // cycling through the back until the person gets each one right).
+    var id = null;
+    var isRetry = false;
+    if(sessionQueue.length > 0){
+      id = sessionQueue.shift();
+    } else if(retryQueue.length > 0){
+      id = retryQueue.shift();
+      isRetry = true;
+    } else {
+      finishSession();
+      return;
+    }
+
     current = findCard(id);
-    $('boxBadge').textContent = boxLabel(current.stage, 0);
+    $('boxBadge').textContent = isRetry ? '재도전' : boxLabel(current.stage, 0);
     koreanEl.textContent = current.ko;
     showHint(0);
     updateStats();
@@ -1053,8 +1155,16 @@
     var classification = hintLevel >= 2 ? 'hard' : 'easy';
     scheduleCorrect(current, classification);
     sessionDoneCount++;
-    if(classification === 'hard'){ sessionMissedIds.push(current.id); streak = 0; }
-    else { streak++; }
+    if(classification === 'hard'){
+      sessionMissedIds.push(current.id);
+      current.ngCount = (current.ngCount || 0) + 1;
+      streak = 0;
+      // Queue the card at the back of the session for one more attempt.
+      // Repeats until the person gets it right without needing the first-letter hint.
+      retryQueue.push(current.id);
+    } else {
+      streak++;
+    }
 
     var koreanEl = $('koreanText');
     koreanEl.style.color = 'var(--success-text)';
@@ -1181,7 +1291,10 @@
       'exportToggle','exportPane','exportTextarea','exportCopyBtn',
       'overdueCount','dueSoonCount',
       'tabAllCards','allCardsPane','editModeToggleBtn','allCardsSearch',
-      'editToolbar','selectAllCheckbox','deleteSelectedBtn','allCardsList'
+      'editToolbar','selectAllCheckbox','deleteSelectedBtn','allCardsList',
+      'sortAdded','sortNg','sortAlpha','toggleKo','toggleEn',
+      'ngFilterCheck','ngFilterCount','ngFilterInfo',
+
     ];
     var missing = requiredIds.filter(function(id){ return !$(id); });
     if(missing.length){
@@ -1197,4 +1310,5 @@
   renderCardList();
   renderBookmarkList();
   refreshSetupInfo();
+
 })();

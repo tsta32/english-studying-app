@@ -293,6 +293,16 @@
   .edit-toolbar button{ font-size:13px; padding:7px 10px; }
   .edit-toolbar .delete-selected-btn{ color: var(--danger); border-color: var(--danger); }
   .edit-toolbar .delete-selected-btn:disabled{ opacity:0.35; }
+
+  .sort-btn, .toggle-btn{
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text-2);
+  }
+  .sort-btn.active{ border-color: var(--info); background: var(--info-bg); color: var(--info-text); }
+  .toggle-btn.active{ border-color: var(--success); background: var(--success-bg); color: var(--success-text); }
+  .toggle-btn:not(.active){ opacity: 0.55; }
 </style>
 </head>
 <body>
@@ -337,7 +347,20 @@
           <button id="customCountBtn" style="white-space:nowrap;">이 개수로</button>
         </div>
         <p class="muted" id="customCountHint" style="margin-bottom:10px;"></p>
-        <p class="muted" id="newCardRatioInfo" style="margin-bottom:14px;"></p>
+        <p class="muted" id="newCardRatioInfo" style="margin-bottom:10px;"></p>
+
+        <div style="margin-bottom:14px; padding:10px 12px; background:var(--surface-2); border-radius:var(--radius-md);">
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
+              <input type="checkbox" id="ngFilterCheck" style="width:auto;" />
+              재도전 누적
+            </label>
+            <input type="number" id="ngFilterCount" value="3" min="1" max="999" inputmode="numeric"
+              style="width:56px; height:32px; font-size:13px; padding:0 8px;" />
+            <span style="font-size:13px; color:var(--text-2);">회 이상인 문제만 출제</span>
+          </div>
+          <p class="muted" id="ngFilterInfo" style="margin-top:6px; min-height:14px;"></p>
+        </div>
 
         <button id="startBtn" style="width:100%; font-weight:500;">시작하기</button>
       </div>
@@ -413,7 +436,17 @@
           <h2 style="font-size:15px;">전체 문장 (<span id="allCardsCount">0</span>개)</h2>
           <button type="button" id="editModeToggleBtn" style="font-size:13px; padding:7px 12px;">편집</button>
         </div>
-        <input type="text" id="allCardsSearch" class="search-input" placeholder="한국어 또는 영어로 검색" style="margin-bottom:12px;" />
+        <input type="text" id="allCardsSearch" class="search-input" placeholder="한국어 또는 영어로 검색" style="margin-bottom:10px;" />
+
+        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; align-items:center;">
+          <span style="font-size:12px; color:var(--text-3);">정렬</span>
+          <button type="button" class="sort-btn active" id="sortAdded" style="font-size:12px; padding:5px 10px;">추가순</button>
+          <button type="button" class="sort-btn" id="sortNg" style="font-size:12px; padding:5px 10px;">재도전 많은순</button>
+          <button type="button" class="sort-btn" id="sortAlpha" style="font-size:12px; padding:5px 10px;">알파벳순</button>
+          <span style="font-size:12px; color:var(--text-3); margin-left:4px;">표시</span>
+          <button type="button" class="toggle-btn active" id="toggleKo" style="font-size:12px; padding:5px 10px;">한국어</button>
+          <button type="button" class="toggle-btn active" id="toggleEn" style="font-size:12px; padding:5px 10px;">영어</button>
+        </div>
 
         <div class="edit-toolbar" id="editToolbar">
           <label class="left">
