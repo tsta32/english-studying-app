@@ -887,15 +887,18 @@ function showDiff(y,a){
 }
 function checkAnswer(){
   if(!current)return;if(pendingDiff){finalizeCorrect();return;}
-  var val=norm($('answerInput').value),ans=norm(current.en);
-  if(!val){escalateWrong();return;}
+  var raw=$('answerInput').value;
+  if(!raw.trim()){escalateWrong();return;}
+  var val=norm(raw), ans=norm(current.en);
+  var valE=normExpand(raw), ansE=normExpand(current.en);
+  // 1) 완전 일치 (그대로 or 구두점만 다를 때)
   if(val===ans){finalizeCorrect();return;}
-  // 축약형↔원형 정규화 후 비교 (I'm == I am, won't == will not 등)
-  if(normExpand(val)===normExpand(ans)){finalizeCorrect();return;}
-  if(lev(val,ans)===1||anagram(val,ans)){showDiff(val,ans);return;}
-  // 축약형 정규화 후에도 오타 1글자 차이면 판정 패널 표시
-  var valE=normExpand(val),ansE=normExpand(ans);
-  if(valE!==val&&(lev(valE,ansE)===1||anagram(valE,ansE))){showDiff(val,ans);return;}
+  // 2) 축약형↔원형 정규화 후 일치 (I'm == I am, can't == cannot 등)
+  if(valE===ansE){finalizeCorrect();return;}
+  // 3) 오타 1글자 차이 또는 철자 순서 바뀜 → 판정 패널
+  if(lev(val,ans)===1||anagram(val,ans)){showDiff(raw,current.en);return;}
+  // 4) 축약형 정규화 후에도 오타 1글자 차이
+  if(lev(valE,ansE)===1||anagram(valE,ansE)){showDiff(raw,current.en);return;}
   escalateWrong();
 }
 on('checkBtn','click',checkAnswer);on('nextBtn','click',loadNext);
