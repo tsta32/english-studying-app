@@ -776,7 +776,12 @@ function finalizeCorrect(){
   var cls=hintLevel>=2?'hard':'easy';
   if(!practiceMode){
     scheduleCorrect(current,cls);
-    if(cls==='hard'){sessionMissedIds.push(current.id);current.ngCount=(current.ngCount||0)+1;}
+    if(cls==='hard'){
+      // ngCount는 이 세션에서 이 카드가 첫 오답일 때만 +1 (재도전에서 또 틀려도 추가 안 됨)
+      var alreadyMissed=sessionMissedIds.indexOf(current.id)!==-1;
+      if(!alreadyMissed) current.ngCount=(current.ngCount||0)+1;
+      sessionMissedIds.push(current.id);
+    }
   }
   sessionDoneCount++;
   if(cls==='hard'){streak=0;retryQueue.push(current.id);}
