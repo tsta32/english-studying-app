@@ -573,117 +573,127 @@ function playWrongSound(){}
 var SVGNS='http://www.w3.org/2000/svg';
 function getCardRect(){var c=$('quizCard');return{w:c.clientWidth,h:c.clientHeight};}
 
-/* ─── MASSIVE BALLOON BURST + WHITE SMOKE ─── */
-function bloomEffect(onSmokeDone){
+/* ─── FULL-SCREEN BALLOON COVER EFFECT ───
+   Strategy: pack balloons in a tight grid so they completely tile the screen,
+   all start stationary (covering everything), then all rise simultaneously.
+   Once the last balloon has cleared the top, call onDone().                 */
+function bloomEffect(onDone){
   var svg=$('fxLayer');
-  var svgR=svg.getBoundingClientRect();
   var vw=window.innerWidth, vh=window.innerHeight;
-  // balloons spread across FULL VIEWPORT
-  var colors=['#FF2DF7','#39FF14','#FFE600','#00F5FF','#FF4D6D','#FF9F1C','#FFFFFF','#BF5FFF','#00E6B4','#FF77C8'];
-  var count=80; // lots of balloons
-  for(var i=0;i<count;i++){
-    (function(i){
-      var delay=Math.random()*600;
-      setTimeout(function(){
-        var g=document.createElementNS(SVGNS,'g');
-        var bx=20+Math.random()*(vw-40);
-        var by=vh+30;
-        var color=colors[Math.floor(Math.random()*colors.length)];
-        var r=12+Math.random()*20;
-        var driftX=(Math.random()-0.5)*120;
-        var wobble=20+Math.random()*40;
-        var duration=1100+Math.random()*900;
 
-        var body=document.createElementNS(SVGNS,'ellipse');
-        body.setAttribute('cx',0);body.setAttribute('cy',0);
-        body.setAttribute('rx',r);body.setAttribute('ry',r*1.3);
-        body.setAttribute('fill',color);
+  // Balloon size tuned so that a grid fully covers the viewport with slight overlap
+  var R=28;          // balloon half-width
+  var RY=R*1.3;      // balloon half-height (taller than wide)
+  var colGap=R*2-2;  // columns overlap slightly
+  var rowGap=RY*2-2;
 
-        var str=document.createElementNS(SVGNS,'line');
-        str.setAttribute('x1',0);str.setAttribute('y1',r*1.3);
-        str.setAttribute('x2',(Math.random()-0.5)*8);str.setAttribute('y2',r*1.3+16);
-        str.setAttribute('stroke',color);str.setAttribute('stroke-width','1.5');str.setAttribute('opacity','0.6');
+  var cols=Math.ceil(vw/colGap)+1;
+  var rows=Math.ceil(vh/rowGap)+2; // extra rows top & bottom
 
-        var shine=document.createElementNS(SVGNS,'ellipse');
-        shine.setAttribute('cx',-r*0.28);shine.setAttribute('cy',-r*0.38);
-        shine.setAttribute('rx',r*0.22);shine.setAttribute('ry',r*0.3);
-        shine.setAttribute('fill','rgba(255,255,255,0.5)');
+  var colors=['#FF8FAB','#FFB347','#FFD966','#A8E6A3','#93C5FD','#C4B5FD',
+              '#FCA5A5','#6EE7B7','#FDE68A','#FBCFE8','#BAE6FD','#D9F99D'];
 
-        g.appendChild(body);g.appendChild(str);g.appendChild(shine);
-        g.style.opacity='0';
-        svg.appendChild(g);
+  var balloons=[];
+  for(var row=0;row<rows;row++){
+    for(var col=0;col<cols;col++){
+      var cx=col*colGap - R + (row%2===1?colGap/2:0); // offset every other row
+      var cy=vh - row*rowGap + RY;                     // fill from bottom up
 
-        var start=null;
-        function step(ts){
-          if(!start)start=ts;
-          var p=Math.min((ts-start)/duration,1);
-          var ease=1-Math.pow(1-p,2.2);
-          var curX=bx+driftX*ease+Math.sin(p*Math.PI*3)*wobble;
-          var curY=by-(vh+r*4)*ease;
-          g.setAttribute('transform','translate('+curX.toFixed(1)+','+curY.toFixed(1)+')');
-          var op=p<0.12?p/0.12:p>0.75?Math.max(0,(1-p)/0.25):1;
-          g.style.opacity=String(op.toFixed(3));
-          if(p<1)requestAnimationFrame(step);else g.remove();
-        }
-        requestAnimationFrame(step);
-      }, delay);
-    })(i);
-  }
+      var color=colors[Math.floor(Math.random()*colors.length)];
+      var g=document.createElementNS(SVGNS,'g');
 
-  // WHITE SMOKE that fills screen then fades, triggering next card when done
-  var smoke=document.createElementNS(SVGNS,'rect');
-  smoke.setAttribute('x',0);smoke.setAttribute('y',0);
-  smoke.setAttribute('width',vw);smoke.setAttribute('height',vh);
-  smoke.setAttribute('fill','white');smoke.style.opacity='0';
-  svg.appendChild(smoke);
-  var ss=null,smokeDone=false;
-  function smokeStep(ts){
-    if(!ss)ss=ts;
-    var p=Math.min((ts-ss)/900,1);
-    var op;
-    if(p<0.35) op=p/0.35*0.82;       // fast fill
-    else op=Math.max(0,0.82*(1-(p-0.35)/0.65)); // slow fade
-    smoke.style.opacity=String(op.toFixed(3));
-    if(p<1){requestAnimationFrame(smokeStep);}
-    else{
-      smoke.remove();
-      if(!smokeDone&&onSmokeDone){smokeDone=true;onSmokeDone();}
+      var body=document.createElementNS(SVGNS,'ellipse');
+      body.setAttribute('cx',0);body.setAttribute('cy',0);
+      body.setAttribute('rx',String(R));body.setAttribute('ry',String(RY));
+      body.setAttribute('fill',color);body.setAttribute('opacity','0.96');
+
+      var shine=document.createElementNS(SVGNS,'ellipse');
+      shine.setAttribute('cx',String(-R*0.3));shine.setAttribute('cy',String(-RY*0.32));
+      shine.setAttribute('rx',String(R*0.22));shine.setAttribute('ry',String(RY*0.22));
+      shine.setAttribute('fill','rgba(255,255,255,0.5)');
+
+      var str=document.createElementNS(SVGNS,'line');
+      str.setAttribute('x1','0');str.setAttribute('y1',String(RY));
+      str.setAttribute('x2',String((Math.random()-0.5)*5));str.setAttribute('y2',String(RY+14));
+      str.setAttribute('stroke',color);str.setAttribute('stroke-width','1.5');str.setAttribute('opacity','0.55');
+
+      g.appendChild(body);g.appendChild(str);g.appendChild(shine);
+      g.setAttribute('transform','translate('+cx.toFixed(1)+','+cy.toFixed(1)+')');
+      svg.appendChild(g);
+      balloons.push({el:g, startX:cx, startY:cy});
     }
   }
-  requestAnimationFrame(smokeStep);
+
+  // Phase 1: hold for 80ms so the screen looks covered, then rise
+  var riseStart=null;
+  var riseDuration=700; // ms to fly off the top
+  // travel distance needed to clear the screen = vh + RY (balloon bottom clears top)
+  var travel=vh+RY*2;
+
+  // stagger rows slightly for a wave feel
+  var rowStagger=18; // ms per row
+
+  function animate(ts){
+    if(!riseStart)riseStart=ts;
+    var elapsed=ts-riseStart;
+    var allDone=true;
+    for(var i=0;i<balloons.length;i++){
+      var b=balloons[i];
+      // which row is this?
+      var rowIdx=Math.floor(i/cols);
+      var t=Math.max(0,elapsed - rowIdx*rowStagger);
+      var p=Math.min(t/riseDuration,1);
+      if(p<1)allDone=false;
+      // ease-in-out: accelerate then decelerate
+      var ease=p<0.5?2*p*p:(1-Math.pow(-2*p+2,2)/2);
+      var dy=travel*ease;
+      // gentle horizontal wobble
+      var dx=Math.sin(p*Math.PI*2 + i*0.4)*8*(1-p);
+      b.el.setAttribute('transform',
+        'translate('+(b.startX+dx).toFixed(1)+','+(b.startY-dy).toFixed(1)+')');
+    }
+    if(!allDone){
+      requestAnimationFrame(animate);
+    } else {
+      // clean up
+      for(var j=0;j<balloons.length;j++) balloons[j].el.remove();
+      if(onDone) onDone();
+    }
+  }
+
+  // wait one frame for SVG to render (so cover is visible), then start rising
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      setTimeout(function(){
+        requestAnimationFrame(animate);
+      }, 80);
+    });
+  });
 }
 
-/* ─── COMBO TEXT (Nunito, rounded, neon colors) ─── */
-function showComboText(comboN){
-  // 1-combo = nothing, 2 = 2 COMBO!, 3+ = 3 COMBO!! etc.
-  if(comboN<2) return;
-  var colors=['#FF2DF7','#39FF14','#FFE600'];
-  var color=colors[Math.min(comboN-2,colors.length-1)];
-  var label=comboN+' COMBO'+(comboN>=3?'!!':'!');
-
+/* ─── COMBO TEXT ─── */
+function showComboText(n){
+  if(n<2)return;
+  var colors=['#FF6BB5','#3CB878','#F59E0B'];
+  var color=colors[Math.min(n-2,colors.length-1)];
+  var label=n+' COMBO'+(n>=3?'!!':'!');
   var svg=$('fxLayer');
-  var svgR=svg.getBoundingClientRect();
-  var cx=window.innerWidth/2, cy=window.innerHeight*0.38;
-
+  var cx=window.innerWidth/2, cy=window.innerHeight*0.36;
   var t=document.createElementNS(SVGNS,'text');
   t.setAttribute('x',cx);t.setAttribute('y',cy);
   t.setAttribute('text-anchor','middle');t.setAttribute('dominant-baseline','middle');
   t.setAttribute('font-size','0');t.setAttribute('font-weight','800');
   t.setAttribute('font-family',"'Nunito',sans-serif");
   t.setAttribute('fill',color);
-  t.style.filter='drop-shadow(0 0 12px '+color+') drop-shadow(0 0 24px '+color+')';
-  t.textContent=label;
-  svg.appendChild(t);
-
+  t.style.filter='drop-shadow(0 2px 8px '+color+')';
+  t.textContent=label;svg.appendChild(t);
   var s=null;
   function step(ts){
-    if(!s)s=ts;var p=Math.min((ts-s)/900,1);
-    var sc=p<0.3?58*(1.6-0.6*Math.cos((p/0.3)*Math.PI)):58;
+    if(!s)s=ts;var p=Math.min((ts-s)/850,1);
+    var sc=p<0.28?60*(1.6-0.6*Math.cos((p/0.28)*Math.PI)):60;
     t.setAttribute('font-size',sc.toFixed(1));
-    // float up slightly
-    var dy=p*-18;
-    t.setAttribute('y',(cy+dy).toFixed(1));
-    t.style.opacity=p<0.25?'1':p>0.6?String(Math.max(0,1-(p-0.6)/0.4)):'1';
+    t.setAttribute('y',(cy-p*14).toFixed(1));
+    t.style.opacity=p<0.22?'1':p>0.62?String(Math.max(0,1-(p-0.62)/0.38)):'1';
     if(p<1)requestAnimationFrame(step);else t.remove();
   }
   requestAnimationFrame(step);
@@ -698,11 +708,11 @@ function bigText(label,color){
   t.setAttribute('font-size','0');t.setAttribute('font-weight','800');
   t.setAttribute('font-family',"'Nunito',sans-serif");
   t.setAttribute('fill',color);
-  t.style.filter='drop-shadow(0 0 16px '+color+')';
+  t.style.filter='drop-shadow(0 2px 10px '+color+')';
   t.textContent=label;svg.appendChild(t);
   var s=null;function step(ts){
-    if(!s)s=ts;var p=Math.min((ts-s)/650,1);
-    var sc=p<0.35?68*(1.5-0.5*Math.cos((p/0.35)*Math.PI)):68;
+    if(!s)s=ts;var p=Math.min((ts-s)/600,1);
+    var sc=p<0.35?62*(1.5-0.5*Math.cos((p/0.35)*Math.PI)):62;
     t.setAttribute('font-size',sc.toFixed(1));
     t.style.opacity=p<0.5?'1':String(Math.max(0,1-(p-0.5)/0.5));
     if(p<1)requestAnimationFrame(step);else t.remove();
@@ -786,16 +796,13 @@ function finalizeCorrect(){
   sessionDoneCount++;
   if(cls==='hard'){streak=0;retryQueue.push(current.id);}
   else streak++;
-  $('koreanText').style.color='var(--teal)';
-  flashCP('var(--teal)',true);
-  // OK text in teal neon
-  bigText('OK','#00E6B4');
-  // combo display (2~3 combos, neon colors)
+  $('koreanText').style.color='var(--success)';
+  flashCP('var(--success)',true);
+  bigText('OK','#34A96E');
   if(cls==='easy'&&streak>=2) showComboText(Math.min(streak,3));
   playCorrectSound(streak>=3);
   $('answerInput').disabled=true;$('checkBtn').style.display='none';$('diffPanel').style.display='none';$('nextBtn').style.display='block';
   updateStats();
-  // balloons + white smoke: advance on smoke-done callback (≈ 900ms)
   var token=++autoAdvanceToken;
   bloomEffect(function(){
     if(token===autoAdvanceToken) loadNext();
