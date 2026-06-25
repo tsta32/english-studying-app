@@ -573,18 +573,19 @@ function playWrongSound(){}
 var SVGNS='http://www.w3.org/2000/svg';
 function getCardRect(){var c=$('quizCard');return{w:c.clientWidth,h:c.clientHeight};}
 
-/* ─── BALLOON BURST: natural dense rise covering full screen ───
-   3 rapid waves totalling ~300 balloons, random positions & timing.
-   onDone() fires once the last balloon has left the screen.          */
+/* ─── BALLOON BURST ─── */
 function bloomEffect(onDone){
   var vw=window.innerWidth, vh=window.innerHeight;
   var svg=$('fxLayer');
 
-  // Warm palette only — no blue/purple
-  var colors=['#FF8FAB','#FFB347','#FFD966','#A8E6A3','#F4A261',
-              '#FCA5A5','#6EE7B7','#FDE68A','#FBCFE8','#D9F99D',
-              '#FCD34D','#86EFAC','#FDA4AF','#FED7AA','#BBF7D0',
-              '#FECACA','#FEF08A','#D1FAE5','#FFE4E6','#ECFCCB'];
+  var colors=[
+    '#FF4E91','#FF7043','#FFC107','#76FF03','#FF6EC7',
+    '#FF1744','#FF6D00','#FFD600','#00E676','#FF4081',
+    '#F50057','#FF9100','#FFEA00','#69F0AE','#FF80AB',
+    '#E040FB','#FF6B6B','#FFB300','#CCFF90','#FF5252',
+    '#FF6F00','#FFFF00','#B9F6CA','#FF4081','#EA80FC',
+    '#FF3D00','#FFD740','#CCFF90','#FF6E40','#FF6D00'
+  ];
 
   var total=0, done=0, launched=false;
 
@@ -593,14 +594,14 @@ function bloomEffect(onDone){
     setTimeout(function(){
       var g=document.createElementNS('http://www.w3.org/2000/svg','g');
       var color=colors[Math.floor(Math.random()*colors.length)];
-      var r=10+Math.random()*16;
+      var r=9+Math.random()*17;
       var bx=Math.random()*vw;
-      var extra=10+Math.random()*80;
+      var extra=5+Math.random()*50;
       var by=vh+extra;
-      var driftX=(Math.random()-0.5)*110;
-      var wobbleAmp=14+Math.random()*32;
-      var wobbleFreq=1.4+Math.random()*2;
-      var dur=950+Math.random()*700;
+      var driftX=(Math.random()-0.5)*90;
+      var wobbleAmp=12+Math.random()*28;
+      var wobbleFreq=1.6+Math.random()*2;
+      var dur=420+Math.random()*280; // 빠르게: 420~700ms
 
       var body=document.createElementNS('http://www.w3.org/2000/svg','ellipse');
       body.setAttribute('cx','0');body.setAttribute('cy','0');
@@ -610,12 +611,12 @@ function bloomEffect(onDone){
       var shine=document.createElementNS('http://www.w3.org/2000/svg','ellipse');
       shine.setAttribute('cx',String(-r*0.28));shine.setAttribute('cy',String(-r*0.35));
       shine.setAttribute('rx',String(r*0.21));shine.setAttribute('ry',String(r*0.28));
-      shine.setAttribute('fill','rgba(255,255,255,0.48)');
+      shine.setAttribute('fill','rgba(255,255,255,0.5)');
 
       var str=document.createElementNS('http://www.w3.org/2000/svg','line');
       str.setAttribute('x1','0');str.setAttribute('y1',String(r*1.28));
       str.setAttribute('x2',String((Math.random()-0.5)*5));
-      str.setAttribute('y2',String(r*1.28+13));
+      str.setAttribute('y2',String(r*1.28+12));
       str.setAttribute('stroke',color);str.setAttribute('stroke-width','1.4');
       str.setAttribute('opacity','0.5');
 
@@ -626,11 +627,11 @@ function bloomEffect(onDone){
       (function step(ts){
         if(!t0)t0=ts;
         var p=Math.min((ts-t0)/dur,1);
-        var ease=1-Math.pow(1-p,2.3);
+        var ease=1-Math.pow(1-p,2.0);
         var cx=bx+driftX*ease+Math.sin(p*Math.PI*wobbleFreq)*wobbleAmp*(1-p);
         var cy=by-(vh+r*3+extra)*ease;
         g.setAttribute('transform','translate('+cx.toFixed(1)+','+cy.toFixed(1)+')');
-        var op=p<0.08?p/0.08:p>0.80?Math.max(0,(1-p)/0.20):1;
+        var op=p<0.06?p/0.06:p>0.78?Math.max(0,(1-p)/0.22):1;
         g.style.opacity=op.toFixed(3);
         if(p<1){ requestAnimationFrame(step); }
         else {
@@ -641,15 +642,13 @@ function bloomEffect(onDone){
     }, delay);
   }
 
-  // Wave 1 (main burst): 180 balloons, 0-350ms
+  // 500개: 3 웨이브, 0~300ms 안에 전부 발사
   var i;
-  for(i=0;i<180;i++) spawnBalloon(Math.random()*350);
-  // Wave 2 (fill gaps): 80 balloons, 30-300ms
-  for(i=0;i<80;i++)  spawnBalloon(30+Math.random()*300);
-  // Wave 3 (stragglers): 40 balloons, 80-240ms
-  for(i=0;i<40;i++)  spawnBalloon(80+Math.random()*240);
+  for(i=0;i<280;i++) spawnBalloon(Math.random()*250);
+  for(i=0;i<140;i++) spawnBalloon(20+Math.random()*200);
+  for(i=0;i<80;i++)  spawnBalloon(50+Math.random()*150);
 
-  setTimeout(function(){ launched=true; }, 30);
+  setTimeout(function(){ launched=true; }, 20);
 }
 
 
@@ -739,7 +738,11 @@ function showHint(lv){var ht=$('hintText'),hl=$('hintLabel');if(lv<=0){ht.style.
 function resetInputUI(){var inp=$('answerInput');inp.value='';inp.disabled=false;$('checkBtn').style.display='block';$('nextBtn').style.display='none';$('diffPanel').style.display='none';pendingDiff=null;setTimeout(function(){inp.focus();},50);}
 
 function loadNext(){
-  autoAdvanceToken++;$('koreanText').style.color='';hintLevel=0;resetInputUI();
+  autoAdvanceToken++;
+  // clear any leftover balloon/fx elements from previous card
+  var svg=$('fxLayer');
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  $('koreanText').style.color='';hintLevel=0;resetInputUI();
   var id=null,isRetry=false;
   if(sessionQueue.length)id=sessionQueue.shift();
   else if(retryQueue.length){id=retryQueue.shift();isRetry=true;}
@@ -778,17 +781,20 @@ function finalizeCorrect(){
   sessionDoneCount++;
   if(cls==='hard'){streak=0;retryQueue.push(current.id);}
   else streak++;
+  var big=streak>=3;
   $('koreanText').style.color='var(--success)';
   flashCP('var(--success)',true);
   bigText('OK','#34A96E');
   if(cls==='easy'&&streak>=2) showComboText(Math.min(streak,3));
-  playCorrectSound(streak>=3);
-  $('answerInput').disabled=true;$('checkBtn').style.display='none';$('diffPanel').style.display='none';$('nextBtn').style.display='block';
+  playCorrectSound(big);
   updateStats();
+  // 풍선은 백그라운드에서 날리고, 즉시 다음 문제로 전환
+  bloomEffect(null); // onDone 없이 - 풍선은 그냥 날아감
   var token=++autoAdvanceToken;
-  bloomEffect(function(){
+  // 짧은 딜레이(150ms)만 주고 바로 다음 문제 - OK 텍스트 잠깐 보이는 정도
+  setTimeout(function(){
     if(token===autoAdvanceToken) loadNext();
-  });
+  }, 150);
 }
 function escalateWrong(){
   streak=0;$('koreanText').style.color='var(--danger)';flashCP('var(--danger)',true);shakeScreen();bigText('NG','#FF4D6D');playWrongSound();
