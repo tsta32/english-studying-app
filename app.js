@@ -24,6 +24,78 @@ function on(id,evt,fn){var el=$(id);if(!el){console.warn('[srs] missing #'+id);r
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function norm(s){return s.trim().toLowerCase().replace(/[.,!?;:'"()\-]/g,'').replace(/\s+/g,' ').trim();}
 
+// Expand all contractions to their full forms so that
+// "I'm" and "I am", "won't" and "will not", etc. are treated as identical.
+function expandContractions(s){
+  s=s.toLowerCase();
+  // negative contractions first (order matters: won't before 'll etc.)
+  s=s.replace(/\bwon't\b/g,'will not');
+  s=s.replace(/\bcan't\b/g,'cannot');
+  s=s.replace(/\bcannot\b/g,'cannot');
+  s=s.replace(/\baint\b/g,'are not');        // informal
+  s=s.replace(/\bisn't\b/g,'is not');
+  s=s.replace(/\baren't\b/g,'are not');
+  s=s.replace(/\bwasn't\b/g,'was not');
+  s=s.replace(/\bweren't\b/g,'were not');
+  s=s.replace(/\bdon't\b/g,'do not');
+  s=s.replace(/\bdoesn't\b/g,'does not');
+  s=s.replace(/\bdidn't\b/g,'did not');
+  s=s.replace(/\bwouldn't\b/g,'would not');
+  s=s.replace(/\bcouldn't\b/g,'could not');
+  s=s.replace(/\bshouldn't\b/g,'should not');
+  s=s.replace(/\bhaven't\b/g,'have not');
+  s=s.replace(/\bhasn't\b/g,'has not');
+  s=s.replace(/\bhadn't\b/g,'had not');
+  s=s.replace(/\bmightn't\b/g,'might not');
+  s=s.replace(/\bmustn't\b/g,'must not');
+  s=s.replace(/\bneedn't\b/g,'need not');
+  // positive contractions
+  s=s.replace(/\bi'm\b/g,'i am');
+  s=s.replace(/\byou're\b/g,'you are');
+  s=s.replace(/\bhe's\b/g,'he is');          // covers he has too — normalised same
+  s=s.replace(/\bshe's\b/g,'she is');
+  s=s.replace(/\bit's\b/g,'it is');
+  s=s.replace(/\bwe're\b/g,'we are');
+  s=s.replace(/\bthey're\b/g,'they are');
+  s=s.replace(/\bthat's\b/g,'that is');
+  s=s.replace(/\bwhat's\b/g,'what is');
+  s=s.replace(/\bthere's\b/g,'there is');
+  s=s.replace(/\bhere's\b/g,'here is');
+  s=s.replace(/\bwho's\b/g,'who is');
+  s=s.replace(/\bhow's\b/g,'how is');
+  s=s.replace(/\bi'll\b/g,'i will');
+  s=s.replace(/\byou'll\b/g,'you will');
+  s=s.replace(/\bhe'll\b/g,'he will');
+  s=s.replace(/\bshe'll\b/g,'she will');
+  s=s.replace(/\bit'll\b/g,'it will');
+  s=s.replace(/\bwe'll\b/g,'we will');
+  s=s.replace(/\bthey'll\b/g,'they will');
+  s=s.replace(/\bthat'll\b/g,'that will');
+  s=s.replace(/\bi've\b/g,'i have');
+  s=s.replace(/\byou've\b/g,'you have');
+  s=s.replace(/\bwe've\b/g,'we have');
+  s=s.replace(/\bthey've\b/g,'they have');
+  s=s.replace(/\bi'd\b/g,'i would');         // covers i had too
+  s=s.replace(/\byou'd\b/g,'you would');
+  s=s.replace(/\bhe'd\b/g,'he would');
+  s=s.replace(/\bshe'd\b/g,'she would');
+  s=s.replace(/\bwe'd\b/g,'we would');
+  s=s.replace(/\bthey'd\b/g,'they would');
+  s=s.replace(/\bi'd've\b/g,'i would have');
+  s=s.replace(/\blet's\b/g,'let us');
+  s=s.replace(/\bthey'd\b/g,'they would');
+  return s.replace(/\s+/g,' ').trim();
+}
+
+// Normalise then expand — expand contractions BEFORE stripping punctuation
+// so apostrophes are still present when the regex runs.
+function normExpand(s){
+  var expanded=expandContractions(s.trim().toLowerCase());
+  return expanded.replace(/[.,!?;:'"()\-]/g,'').replace(/\s+/g,' ').trim();
+}
+
+
+
 function lev(a,b){
   var m=a.length,n=b.length,dp=[],i,j;
   for(i=0;i<=m;i++)dp.push([i]);
@@ -816,8 +888,14 @@ function showDiff(y,a){
 function checkAnswer(){
   if(!current)return;if(pendingDiff){finalizeCorrect();return;}
   var val=norm($('answerInput').value),ans=norm(current.en);
-  if(!val){escalateWrong();return;}if(val===ans){finalizeCorrect();return;}
+  if(!val){escalateWrong();return;}
+  if(val===ans){finalizeCorrect();return;}
+  // 축약형↔원형 정규화 후 비교 (I'm == I am, won't == will not 등)
+  if(normExpand(val)===normExpand(ans)){finalizeCorrect();return;}
   if(lev(val,ans)===1||anagram(val,ans)){showDiff(val,ans);return;}
+  // 축약형 정규화 후에도 오타 1글자 차이면 판정 패널 표시
+  var valE=normExpand(val),ansE=normExpand(ans);
+  if(valE!==val&&(lev(valE,ansE)===1||anagram(valE,ansE))){showDiff(val,ans);return;}
   escalateWrong();
 }
 on('checkBtn','click',checkAnswer);on('nextBtn','click',loadNext);
