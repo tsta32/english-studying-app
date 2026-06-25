@@ -12,6 +12,7 @@ var nextCardId=1,nextChapterId=1;
 var sessionQueue=[],sessionUniqueIds=[],sessionDoneCount=0,streak=0;
 var current=null,hintLevel=0,pendingDiff=null,autoAdvanceToken=0;
 var sessionMissedIds=[],retryQueue=[];
+var currentIsRetry=false; // 현재 풀고 있는 카드가 세션 내 재도전 카드인지 여부
 
 var acSort='added',acShowKo=true,acShowEn=true,acSearch='';
 var acChapterFilter=null,acCheckedIds={};
@@ -264,7 +265,7 @@ on('practiceBtn','click',function(){
   if(!chosen.length){alert('풀 수 있는 카드가 없어요.');return;}
   practiceMode=true;
   sessionQueue=chosen.map(function(c){return c.id;});sessionUniqueIds=chosen.map(function(c){return c.id;});
-  sessionDoneCount=0;streak=0;sessionMissedIds=[];retryQueue=[];
+  sessionDoneCount=0;streak=0;sessionMissedIds=[];retryQueue=[];currentIsRetry=false;
   $('setupScreen').style.display='none';$('quizScreen').style.display='block';
   // show practice indicator in the stats bar
   $('progressCount').style.color='var(--warning)';
@@ -298,7 +299,7 @@ on('startBtn','click',function(){
   var chosen=useNg?buildNgSession(minNg,chosenCount):buildSession(chosenCount,selIds.length?selIds:null);
   if(!chosen.length){$('ngFilterInfo').textContent='해당 카드 없음';$('ngFilterInfo').style.color='var(--danger-text)';return;}
   sessionQueue=chosen.map(function(c){return c.id;});sessionUniqueIds=chosen.map(function(c){return c.id;});
-  sessionDoneCount=0;streak=0;sessionMissedIds=[];retryQueue=[];
+  sessionDoneCount=0;streak=0;sessionMissedIds=[];retryQueue=[];currentIsRetry=false;
   $('setupScreen').style.display='none';$('quizScreen').style.display='block';
   loadNext();
 });
@@ -790,11 +791,18 @@ function flashCP(color,big){
 function scheduleCorrect(card,cls){
   card.everAnswered=true;
   if(cls==='easy'){
-    // Promote to next stage: 0→1 (1day), 1→2 (3day), ... 9 stays at 9
-    card.stage=Math.min((card.stage||0)+1, STAGE_DAYS.length);
-    card.dueAt=now()+STAGE_DAYS[card.stage-1]*ONE_DAY;
+    if(currentIsRetry){
+      // 세션 내 재도전에서 맞춰도 stage 승급 없음
+      // 15분 뒤 다른 세션에서 맞춰야 비로소 stage 1 진입
+      card.stage=0;
+      card.dueAt=now()+FIFTEEN_MIN;
+    } else {
+      // 일반 출제에서 정답 → stage 승급
+      card.stage=Math.min((card.stage||0)+1, STAGE_DAYS.length);
+      card.dueAt=now()+STAGE_DAYS[card.stage-1]*ONE_DAY;
+    }
   } else {
-    // Wrong: reset to 15-minute retry cycle
+    // 오답 → 15분 후 재시험, stage 리셋
     card.stage=0;
     card.dueAt=now()+FIFTEEN_MIN;
   }
@@ -820,6 +828,7 @@ function loadNext(){
   else if(retryQueue.length){id=retryQueue.shift();isRetry=true;}
   else{finishSession();return;}
   current=findCard(id);
+  currentIsRetry=isRetry; // 현재 카드가 세션 내 재도전인지 기록
   $('boxBadge').textContent=isRetry?'재도전':(current.stage===0?'새 카드 / 15분 사이클':'Lv'+current.stage+' ('+STAGE_DAYS[Math.min(current.stage-1,STAGE_DAYS.length-1)]+'일)');
   $('koreanText').textContent=current.ko;showHint(0);updateStats();
 }
