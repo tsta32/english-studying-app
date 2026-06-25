@@ -348,7 +348,9 @@ on('scheduleConfirm','click',function(){
 
 /* ---------- memorize mode ---------- */
 var memShowKo=true,memShowEn=true;
-function openMemMode(){
+var memVisCards=[];
+
+function memGetVisible(){
   var q=acSearch.trim().toLowerCase();
   var vis=cards.filter(function(c){
     if(acChapterFilter!==null&&c.chapterId!==acChapterFilter)return false;
@@ -358,29 +360,77 @@ function openMemMode(){
   if(acSort==='added')vis=vis.slice().reverse();
   else if(acSort==='ng')vis=vis.slice().sort(function(a,b){return(b.ngCount||0)-(a.ngCount||0);});
   else if(acSort==='alpha')vis=vis.slice().sort(function(a,b){return a.en.localeCompare(b.en);});
-  renderMemCards(vis);
-  $('memModeOverlay').style.display='block';
-  document.body.style.overflow='hidden';
+  return vis;
 }
+
+function showMemToast(msg){
+  var t=$('memToast');if(!t)return;
+  t.textContent=msg;t.style.display='block';t.style.opacity='1';
+  clearTimeout(t._timer);
+  t._timer=setTimeout(function(){
+    t.style.transition='opacity 0.4s';t.style.opacity='0';
+    setTimeout(function(){t.style.display='none';t.style.transition='';},400);
+  },1500);
+}
+
 function renderMemCards(vis){
+  memVisCards=vis;
   var list=$('memCardList');list.innerHTML='';
   if(!vis.length){list.innerHTML='<p class="muted" style="text-align:center;padding:40px 0;">표시할 문장이 없어요</p>';return;}
   vis.forEach(function(c){
-    var card=document.createElement('div');
-    card.style.cssText='background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px;';
+    var wrap=document.createElement('div');
+    wrap.style.cssText='background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;display:flex;align-items:flex-start;gap:12px;';
+    var body=document.createElement('div');body.style.flex='1';
     var ko='',en='';
-    if(memShowKo) ko='<div style="font-size:20px;font-weight:500;line-height:1.6;margin-bottom:'+(memShowEn?'10px':'0')+';">'+esc(c.ko)+'</div>';
+    if(memShowKo) ko='<div style="font-size:20px;font-weight:500;line-height:1.6;margin-bottom:'+(memShowEn?'8px':'0')+';">'+esc(c.ko)+'</div>';
     if(memShowEn) en='<div style="font-size:17px;color:var(--text-2);line-height:1.6;">'+esc(c.en)+'</div>';
     var st=reviewStatus(c);
-    var badge='<div style="margin-top:10px;"><span class="due-tag '+st.cls+'" style="font-size:12px;">'+esc(st.text)+'</span>'+(c.ngCount?'<span class="due-tag ng-badge" style="font-size:12px;margin-left:4px;">재도전 '+c.ngCount+'회</span>':'')+'</div>';
-    card.innerHTML=ko+en+badge;
-    list.appendChild(card);
+    var badge='<div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;"><span class="due-tag '+st.cls+'" style="font-size:12px;">'+esc(st.text)+'</span>'+(c.ngCount?'<span class="due-tag ng-badge" style="font-size:12px;">재도전 '+c.ngCount+'회</span>':'')+'</div>';
+    body.innerHTML=ko+en+badge;
+    var ngBtn=document.createElement('button');
+    ngBtn.type='button';
+    ngBtn.style.cssText='flex-shrink:0;font-size:12px;padding:6px 10px;color:var(--danger);border-color:var(--danger);margin-top:2px;';
+    ngBtn.textContent='오답';
+    (function(c,body){
+      ngBtn.addEventListener('click',function(){
+        c.ngCount=(c.ngCount||0)+1;
+        c.everAnswered=true;
+        c.stage=Math.min((c.stage||0)+1,STAGE_DAYS.length);
+        c.dueAt=now()+STAGE_DAYS[Math.min(c.stage-1,STAGE_DAYS.length-1)]*ONE_DAY;
+        saveCards();
+        showMemToast('복습 스케줄에 추가되었습니다');
+        var st2=reviewStatus(c);
+        body.innerHTML=
+          (memShowKo?'<div style="font-size:20px;font-weight:500;line-height:1.6;margin-bottom:'+(memShowEn?'8px':'0')+';">'+esc(c.ko)+'</div>':'')+
+          (memShowEn?'<div style="font-size:17px;color:var(--text-2);line-height:1.6;">'+esc(c.en)+'</div>':'')+
+          '<div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;"><span class="due-tag '+st2.cls+'" style="font-size:12px;">'+esc(st2.text)+'</span>'+(c.ngCount?'<span class="due-tag ng-badge" style="font-size:12px;">재도전 '+c.ngCount+'회</span>':'')+'</div>';
+      });
+    })(c,body);
+    wrap.appendChild(body);wrap.appendChild(ngBtn);
+    list.appendChild(wrap);
   });
 }
+
+function openMemMode(){
+  renderMemCards(memGetVisible());
+  $('memModeOverlay').style.display='flex';
+  document.body.style.overflow='hidden';
+}
+
 on('memModeBtn','click',function(){openMemMode();});
-on('memModeClose','click',function(){$('memModeOverlay').style.display='none';document.body.style.overflow='';});
-on('memToggleKo','click',function(){memShowKo=!memShowKo;$('memToggleKo').classList.toggle('active',memShowKo);var q=acSearch.trim().toLowerCase();var vis=cards.filter(function(c){if(acChapterFilter!==null&&c.chapterId!==acChapterFilter)return false;if(!q)return true;return c.ko.toLowerCase().indexOf(q)!==-1||c.en.toLowerCase().indexOf(q)!==-1;});renderMemCards(acSort==='added'?vis.slice().reverse():vis);});
-on('memToggleEn','click',function(){memShowEn=!memShowEn;$('memToggleEn').classList.toggle('active',memShowEn);var q=acSearch.trim().toLowerCase();var vis=cards.filter(function(c){if(acChapterFilter!==null&&c.chapterId!==acChapterFilter)return false;if(!q)return true;return c.ko.toLowerCase().indexOf(q)!==-1||c.en.toLowerCase().indexOf(q)!==-1;});renderMemCards(acSort==='added'?vis.slice().reverse():vis);});
+on('memModeClose','click',function(){
+  $('memModeOverlay').style.display='none';
+  document.body.style.overflow='';
+  renderAllCards();
+});
+on('memToggleKo','click',function(){
+  memShowKo=!memShowKo;$('memToggleKo').classList.toggle('active',memShowKo);
+  renderMemCards(memVisCards);
+});
+on('memToggleEn','click',function(){
+  memShowEn=!memShowEn;$('memToggleEn').classList.toggle('active',memShowEn);
+  renderMemCards(memVisCards);
+});
 
 on('ngBulkBtn','click',function(){
   var ids=Object.keys(acCheckedIds).map(Number);
