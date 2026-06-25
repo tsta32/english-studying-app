@@ -6,8 +6,8 @@
 <meta name="theme-color" content="#0F6E56" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="영어템플릿" />
-<title>영어 템플릿 암기</title>
+<meta name="apple-mobile-web-app-title" content="반복학습" />
+<title>반복학습ver1.0</title>
 <link rel="manifest" href="manifest.json" />
 <link rel="apple-touch-icon" href="icons/icon-192.png" />
 <style>
@@ -215,7 +215,7 @@ textarea.export-ta{width:100%;min-height:130px;font-family:ui-monospace,"SF Mono
   <!-- ===== SETUP SCREEN ===== -->
   <div id="setupScreen">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-      <h1 style="font-size:20px;">영어 템플릿 암기</h1>
+      <h1 style="font-size:20px;">반복학습ver1.0</h1>
     </div>
 
     <div class="urgency-grid">
@@ -275,11 +275,12 @@ textarea.export-ta{width:100%;min-height:130px;font-family:ui-monospace,"SF Mono
         <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px;">
           <button type="button" id="toggleKo" class="toggle-btn active">한국어</button>
           <button type="button" id="toggleEn" class="toggle-btn active">영어</button>
+          <button type="button" id="memModeBtn" style="font-size:12px;padding:5px 10px;border-color:var(--success);color:var(--success);">📖 암기 모드</button>
           <button type="button" id="selectAllBtn" style="font-size:12px;padding:5px 9px;">전체선택</button>
           <button type="button" id="deselectAllBtn" style="font-size:12px;padding:5px 9px;">선택해제</button>
           <div style="flex:1;"></div>
-          <button type="button" id="delBulkBtn" class="del-bulk-btn" style="font-size:13px;padding:8px 12px;" disabled>삭제</button>
           <button type="button" id="ngBulkBtn" class="ng-bulk-btn" style="font-size:14px;font-weight:500;padding:9px 16px;" disabled>오답 처리</button>
+          <button type="button" id="delBulkBtn" class="del-bulk-btn" style="font-size:13px;padding:8px 12px;" disabled>삭제</button>
         </div>
         <input type="text" id="allCardsSearch" placeholder="한국어 또는 영어로 검색" style="margin-bottom:10px;" />
         <div class="chip-row" id="acChapterFilter"></div>
@@ -443,6 +444,46 @@ textarea.export-ta{width:100%;min-height:130px;font-family:ui-monospace,"SF Mono
       <button type="button" id="renameCancel">취소</button>
       <button type="button" id="renameConfirm" style="border-color:var(--info);color:var(--info);">변경</button>
     </div>
+  </div>
+</div>
+
+<!-- schedule picker modal -->
+<div class="modal-overlay" id="scheduleModal">
+  <div class="modal-box">
+    <h3 style="margin-bottom:4px;">복습 스케줄 설정</h3>
+    <p class="muted" id="scheduleModalKo" style="margin-bottom:14px;"></p>
+    <select id="scheduleSelect" style="width:100%;height:44px;border-radius:var(--r-md);border:1px solid var(--border-strong);background:var(--surface);color:var(--text);font-size:15px;padding:0 10px;font-family:inherit;margin-bottom:16px;">
+      <option value="none">복습 안 함 (제외)</option>
+      <option value="15min">15분 후 (당일 사이클)</option>
+      <option value="1">Lv1 — 1일 후</option>
+      <option value="2">Lv2 — 3일 후</option>
+      <option value="3">Lv3 — 7일 후</option>
+      <option value="4">Lv4 — 15일 후</option>
+      <option value="5">Lv5 — 30일 후</option>
+      <option value="6">Lv6 — 60일 후</option>
+      <option value="7">Lv7 — 120일 후</option>
+      <option value="8">Lv8 — 240일 후</option>
+      <option value="9">Lv9 — 360일 후</option>
+    </select>
+    <div class="modal-actions">
+      <button type="button" id="scheduleCancel">취소</button>
+      <button type="button" id="scheduleConfirm" style="border-color:var(--info);color:var(--info);">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- memorize mode overlay -->
+<div id="memModeOverlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:300;overflow-y:auto;padding:16px;">
+  <div style="max-width:600px;margin:0 auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <h2 style="font-size:18px;font-weight:500;">📖 암기 모드</h2>
+      <button type="button" id="memModeClose" style="font-size:14px;padding:8px 16px;">닫기</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+      <button type="button" id="memToggleKo" class="toggle-btn active" style="font-size:13px;padding:7px 14px;">한국어</button>
+      <button type="button" id="memToggleEn" class="toggle-btn active" style="font-size:13px;padding:7px 14px;">영어</button>
+    </div>
+    <div id="memCardList" style="display:flex;flex-direction:column;gap:14px;"></div>
   </div>
 </div>
 
