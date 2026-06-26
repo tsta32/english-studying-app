@@ -327,17 +327,6 @@ function renderAllCards(){
   else if(acSort==='ng')vis.sort(function(a,b){return(b.ngCount||0)-(a.ngCount||0);});
   else if(acSort==='alpha')vis.sort(function(a,b){return a.en.localeCompare(b.en);});
   var listEl=$('allCardsList'),emptyEl=$('allCardsEmpty');
-  // 토글 시 첫 번째로 화면에 보이는 카드 id를 기억해서 렌더 후 같은 카드 위치로 복원
-  var anchorId=null;
-  var rows=listEl.querySelectorAll('.fc-row');
-  var listTop=listEl.getBoundingClientRect().top;
-  for(var ri=0;ri<rows.length;ri++){
-    if(rows[ri].getBoundingClientRect().top>=listTop-4){
-      var cb=rows[ri].querySelector('.fc-cb input');
-      if(cb) anchorId=parseInt(cb.dataset.id,10);
-      break;
-    }
-  }
   listEl.innerHTML='';
   emptyEl.style.display=vis.length?'none':'block';
   emptyEl.textContent=cards.length===0?'저장된 문장이 없어요':'검색 결과가 없어요';
@@ -349,8 +338,8 @@ function renderAllCards(){
     cb.addEventListener('change',function(){if(cb.checked)acCheckedIds[c.id]=true;else delete acCheckedIds[c.id];updateBulkBar();});
     cbDiv.appendChild(cb);
     var body=document.createElement('div');body.className='fc-body';
-    if(acShowKo)body.innerHTML+='<div class="fc-ko">'+esc(c.ko)+'</div>';
-    if(acShowEn)body.innerHTML+='<div class="fc-en">'+esc(c.en)+'</div>';
+    body.innerHTML+='<div class="fc-ko" style="color:'+(acShowKo?'':'transparent')+';">'+esc(c.ko)+'</div>';
+    body.innerHTML+='<div class="fc-en" style="color:'+(acShowEn?'':'transparent')+';">'+esc(c.en)+'</div>';
     var meta='<div class="fc-meta"><span class="due-tag '+st.cls+'">'+esc(st.text)+'</span>';
     if(ng>0)meta+='<span class="due-tag ng-badge">재도전 '+ng+'회</span>';
     var ch=findChapter(c.chapterId);if(ch)meta+='<span class="due-tag due-later">'+esc(ch.name)+'</span>';
@@ -367,17 +356,6 @@ function renderAllCards(){
     btns.appendChild(bm);btns.appendChild(schBtn);
     row.appendChild(cbDiv);row.appendChild(body);row.appendChild(btns);listEl.appendChild(row);
   });
-  // anchorId 카드가 리스트 상단에 오도록 스크롤 복원
-  if(anchorId!==null){
-    var anchorRows=listEl.querySelectorAll('.fc-row');
-    for(var ai=0;ai<anchorRows.length;ai++){
-      var acb=anchorRows[ai].querySelector('.fc-cb input');
-      if(acb&&parseInt(acb.dataset.id,10)===anchorId){
-        listEl.scrollTop=anchorRows[ai].offsetTop;
-        break;
-      }
-    }
-  }
   updateBulkBar();
 }
 function updateBulkBar(){
