@@ -217,6 +217,18 @@ select{font-family:'Nunito',sans-serif;background:var(--surface-2);color:var(--t
           <p class="muted" id="ngFilterInfo" style="margin-top:6px;min-height:14px;"></p>
         </div>
 
+        <div class="ng-filter-box" style="margin-bottom:12px;">
+          <label style="margin-bottom:8px;">
+            <input type="checkbox" id="bmFilterCheck" />
+            ★ 북마크된 문장만 출제
+          </label>
+          <div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <span style="font-size:13px;font-weight:700;">출제 순서</span>
+            <button type="button" id="orderAdded" class="sort-btn active" style="font-size:12px;padding:5px 10px;">추가순</button>
+            <button type="button" id="orderRandom" class="sort-btn" style="font-size:12px;padding:5px 10px;">랜덤</button>
+          </div>
+        </div>
+
         <button id="startBtn" style="width:100%;font-weight:500;">시작하기</button>
         <button id="practiceBtn" style="width:100%;font-weight:500;margin-top:8px;font-size:12px;color:var(--text-3);">🎯 연습 모드로 풀기 (복습 스케줄에 영향 없음)</button>
       </div>
@@ -230,6 +242,8 @@ select{font-family:'Nunito',sans-serif;background:var(--surface-2);color:var(--t
           <button type="button" id="sortAdded" class="sort-btn active">추가순</button>
           <button type="button" id="sortNg" class="sort-btn">오답순</button>
           <button type="button" id="sortAlpha" class="sort-btn">알파벳순</button>
+          <button type="button" id="sortReverse" class="sort-btn" title="역순">⇅</button>
+          <button type="button" id="filterBm" class="sort-btn">★ 북마크</button>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px;">
           <button type="button" id="toggleKo" class="toggle-btn active">한국어</button>
@@ -371,8 +385,15 @@ select{font-family:'Nunito',sans-serif;background:var(--surface-2);color:var(--t
       <h2 style="font-size:18px;margin-bottom:4px;text-align:center;">세션 완료</h2>
       <p class="muted" id="doneSummary" style="margin-bottom:16px;text-align:center;"></p>
       <div id="missedWrap" style="display:none;">
-        <div style="font-size:13px;font-weight:500;margin-bottom:8px;border-top:1px solid var(--border);padding-top:14px;">이번에 힘들었던 문장</div>
+        <div style="font-size:13px;font-weight:700;margin-bottom:8px;border-top:1px solid var(--border);padding-top:14px;">이번에 힘들었던 문장</div>
         <div id="missedList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;"></div>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:14px;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="font-size:13px;font-weight:700;">이번 테스트 문장 (<span id="doneCardCount">0</span>개)</div>
+          <button type="button" id="doneEditToggleBtn" style="font-size:12px;padding:5px 12px;border-color:var(--accent);color:var(--accent-text);">✏️ 편집</button>
+        </div>
+        <div id="doneCardList" style="display:flex;flex-direction:column;gap:8px;max-height:400px;overflow-y:auto;"></div>
       </div>
       <button id="restartBtn" style="width:100%;font-weight:500;">설정으로 돌아가기</button>
     </div>
