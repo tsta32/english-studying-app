@@ -906,12 +906,12 @@ function bloomEffect(onDone){
   var svg=$('fxLayer');
 
   var colors=[
-    '#FF4E91','#FF7043','#FFC107','#76FF03','#FF6EC7',
-    '#FF1744','#FF6D00','#FFD600','#00E676','#FF4081',
-    '#F50057','#FF9100','#FFEA00','#69F0AE','#FF80AB',
-    '#E040FB','#FF6B6B','#FFB300','#CCFF90','#FF5252',
-    '#FF6F00','#FFFF00','#B9F6CA','#FF4081','#EA80FC',
-    '#FF3D00','#FFD740','#CCFF90','#FF6E40','#FF6D00'
+    '#FF2DF7','#39FF14','#FFE600','#FF1744','#CCFF00',
+    '#FF69D9','#B0FF00','#FFD000','#FF3DFF','#5FFF20',
+    '#FF0080','#00FF41','#FFB300','#FF40A0','#80FF00',
+    '#FF2DF7','#39FF14','#FFE600','#FF6600','#AAFF00',
+    '#FF00AA','#40FF20','#FFD600','#FF50E0','#60FF00',
+    '#FF1080','#20FF60','#FFCC00','#FF30F0','#50FF30'
   ];
 
   var total=0, done=0, launched=false;
@@ -982,7 +982,7 @@ function bloomEffect(onDone){
 /* ─── COMBO TEXT ─── */
 function showComboText(n){
   if(n<2)return;
-  var colors=['#FF6BB5','#3CB878','#F59E0B'];
+  var colors=['#FF2DF7','#39FF14','#FFE600'];
   var color=colors[Math.min(n-2,colors.length-1)];
   var label=n+' COMBO'+(n>=3?'!!':'!');
   var svg=$('fxLayer');
