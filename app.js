@@ -1365,21 +1365,22 @@ var QUICK_PROMPTS=[
 ];
 
 var lastAskCardId=null;
-var lastAskAnswer=null;
+var askConversation=[]; // [{role:'user',content:''},{role:'assistant',content:''}]
+var askSavedCount=0;    // 이미 저장한 턴 수 (갱신 저장용)
 
 function openAskModal(cardId){
   var c=findCard(cardId);if(!c)return;
-  if(!apiKey){
-    alert('먼저 설정 탭에서 API 키를 입력해주세요.');
-    setTab('tabSettings');return;
-  }
-  askTargetCardId=cardId;lastAskAnswer=null;
+  if(!apiKey){alert('먼저 설정 탭에서 API 키를 입력해주세요.');setTab('tabSettings');return;}
+  askTargetCardId=cardId;
+  askConversation=[];
+  askSavedCount=0;
   $('askCardPreview').innerHTML='<strong>'+esc(c.ko)+'</strong><br><span style="color:var(--text-3);">'+esc(c.en)+'</span>';
   $('askInput').value='';
-  $('askAnswer').style.display='none';$('askAnswer').textContent='';
+  $('askAnswer').style.display='none';$('askAnswer').innerHTML='';
   $('askLoading').style.display='none';
   $('askSaveBtn').style.display='none';
-  // 빠른 질문 버튼
+  $('askSendBtn').style.display='block';$('askSendBtn').disabled=false;
+  $('askSendBtn').textContent='질문하기';
   var qb=$('askQuickBtns');qb.innerHTML='';
   QUICK_PROMPTS.forEach(function(p){
     var btn=document.createElement('button');btn.type='button';
@@ -1392,7 +1393,28 @@ function openAskModal(cardId){
   setTimeout(function(){$('askInput').focus();},100);
 }
 
-function closeAskModal(){$('askModal').classList.remove('show');askTargetCardId=null;lastAskAnswer=null;}
+function renderConversation(){
+  var box=$('askAnswer');
+  box.style.display='block';
+  box.innerHTML='';
+  askConversation.forEach(function(msg){
+    var div=document.createElement('div');
+    if(msg.role==='user'){
+      div.style.cssText='background:var(--accent-light);border-radius:var(--r-md);padding:8px 12px;margin-bottom:8px;font-size:13px;font-weight:700;color:var(--accent-text);';
+      div.textContent='Q: '+msg.content;
+    } else {
+      div.style.cssText='background:var(--surface-2);border-radius:var(--r-md);padding:8px 12px;margin-bottom:8px;font-size:13px;line-height:1.7;white-space:pre-wrap;';
+      div.textContent=msg.content;
+    }
+    box.appendChild(div);
+  });
+  box.scrollTop=box.scrollHeight;
+}
+
+function closeAskModal(){
+  $('askModal').classList.remove('show');
+  askTargetCardId=null;askConversation=[];askSavedCount=0;
+}
 on('askModalClose','click',closeAskModal);
 on('askModalClose2','click',closeAskModal);
 
@@ -1401,79 +1423,101 @@ on('askSendBtn','click',function(){
   if(!q)return;
   var c=findCard(askTargetCardId);if(!c)return;
   $('askLoading').style.display='block';
-  $('askAnswer').style.display='none';
   $('askSendBtn').disabled=true;
 
-  var systemPrompt='당신은 영어 학습을 돕는 선생님입니다. 사용자는 영어 문장 템플릿을 외우고 있으며 특정 문장에 대한 질문을 합니다. 한국어로 명확하고 친절하게 답해주세요. 답변은 간결하게 3-5문장 이내로 해주세요.';
-  var userMsg='다음 영어 표현에 대해 질문합니다.\n\n한국어: '+c.ko+'\n영어: '+c.en+'\n\n질문: '+q;
+  // 대화 메시지 구성 (카드 컨텍스트는 system에)
+  var systemPrompt='당신은 영어 학습을 돕는 선생님입니다. 사용자는 다음 영어 표현을 외우고 있습니다.\n한국어: '+c.ko+'\n영어: '+c.en+'\n\n질문에 한국어로 명확하고 친절하게 답해주세요. 답변은 3-5문장 이내로 간결하게.';
+
+  // 이전 대화 + 새 질문 추가
+  var msgs=askConversation.slice();
+  msgs.push({role:'user',content:q});
 
   fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      'x-api-key':apiKey,
-      'anthropic-version':'2023-06-01',
-      'anthropic-dangerous-direct-browser-access':'true'
-    },
-    body:JSON.stringify({
-      model:'claude-haiku-4-5-20251001',
-      max_tokens:800,
-      system:systemPrompt,
-      messages:[{role:'user',content:userMsg}]
-    })
+    headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:800,system:systemPrompt,messages:msgs})
   }).then(function(r){return r.json();}).then(function(data){
     $('askLoading').style.display='none';
     $('askSendBtn').disabled=false;
     if(data.error){
-      $('askAnswer').style.display='block';
-      $('askAnswer').textContent='오류: '+data.error.message;
+      var errDiv=document.createElement('div');
+      errDiv.style.cssText='color:var(--danger);font-size:13px;padding:8px;';
+      errDiv.textContent='오류: '+data.error.message;
+      $('askAnswer').style.display='block';$('askAnswer').appendChild(errDiv);
       return;
     }
     var answer=(data.content&&data.content[0]&&data.content[0].text)||'(답변 없음)';
-    lastAskAnswer=answer;
-    $('askAnswer').style.display='block';
-    $('askAnswer').textContent=answer;
+    // 대화 기록에 추가
+    askConversation.push({role:'user',content:q});
+    askConversation.push({role:'assistant',content:answer});
+    $('askInput').value='';
+    renderConversation();
     $('askSaveBtn').style.display='block';
-    // 요약 자동 생성은 저장 시점에 수행
+    $('askSaveBtn').textContent=askSavedCount>0?'💾 저장 갱신':'💾 저장';
+    $('askSendBtn').textContent='추가 질문하기';
+    setTimeout(function(){$('askInput').focus();},100);
   }).catch(function(err){
     $('askLoading').style.display='none';$('askSendBtn').disabled=false;
-    $('askAnswer').style.display='block';$('askAnswer').textContent='네트워크 오류: '+err.message;
+    var errDiv=document.createElement('div');
+    errDiv.style.cssText='color:var(--danger);font-size:13px;padding:8px;';
+    errDiv.textContent='네트워크 오류: '+err.message;
+    $('askAnswer').style.display='block';$('askAnswer').appendChild(errDiv);
   });
 });
 
 on('askSaveBtn','click',function(){
-  if(!lastAskAnswer||!askTargetCardId)return;
+  if(!askConversation.length||!askTargetCardId)return;
   var c=findCard(askTargetCardId);if(!c)return;
-  var q=$('askInput').value.trim();
-  // 요약 생성 요청
   $('askSaveBtn').disabled=true;$('askSaveBtn').textContent='저장 중...';
-  var summaryPrompt='다음 Q&A를 원인(왜 이 질문이 나왔는지 추정)-질문요약-결론 세 가지로 각각 한 문장씩 한국어로 요약해줘. JSON 형식으로만 응답해: {"cause":"...","question":"...","conclusion":"..."}';
+
+  // 전체 대화를 하나의 텍스트로
+  var fullText=askConversation.map(function(m){return(m.role==='user'?'Q: ':'A: ')+m.content;}).join('\n\n');
+  var firstQ=askConversation[0]?askConversation[0].content:'';
+  var lastA=askConversation.filter(function(m){return m.role==='assistant';}).slice(-1)[0];
+  lastA=lastA?lastA.content:'';
+
+  var summaryPrompt='다음 대화를 원인-질문요약-결론 세 가지로 각각 한 문장씩 한국어로 요약해줘. JSON 형식으로만: {"cause":"...","question":"...","conclusion":"..."}';
   fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify({
-      model:'claude-haiku-4-5-20251001',max_tokens:300,
-      messages:[{role:'user',content:summaryPrompt+'\n\nQ: '+q+'\nA: '+lastAskAnswer}]
-    })
+    body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:300,messages:[{role:'user',content:summaryPrompt+'\n\n'+fullText}]})
   }).then(function(r){return r.json();}).then(function(data){
     var raw=(data.content&&data.content[0]&&data.content[0].text)||'{}';
-    var summary={cause:'',question:q.length>30?q.substring(0,30)+'...':q,conclusion:''};
-    try{var parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());if(parsed)summary=parsed;}catch(e){}
-    var noteEntry={id:Date.now(),date:new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),q:q,a:lastAskAnswer,summary:summary,cardKo:c.ko,cardEn:c.en};
-    if(!notes[askTargetCardId])notes[askTargetCardId]=[];
-    notes[askTargetCardId].unshift(noteEntry);
-    saveNotes();
-    $('askSaveBtn').disabled=false;$('askSaveBtn').textContent='✓ 저장됨';
-    setTimeout(function(){closeAskModal();renderAllCards();},700);
+    var summary={cause:'',question:firstQ.length>30?firstQ.substring(0,30)+'...':firstQ,conclusion:''};
+    try{var p=JSON.parse(raw.replace(/```json|```/g,'').trim());if(p)summary=p;}catch(e){}
+    saveNoteEntry(c,firstQ,fullText,summary);
   }).catch(function(){
-    // 요약 실패해도 그냥 저장
-    var noteEntry={id:Date.now(),date:new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),q:q,a:lastAskAnswer,summary:{cause:'',question:q,conclusion:''},cardKo:c.ko,cardEn:c.en};
-    if(!notes[askTargetCardId])notes[askTargetCardId]=[];
-    notes[askTargetCardId].unshift(noteEntry);
-    saveNotes();
-    closeAskModal();renderAllCards();
+    var summary={cause:'',question:firstQ.length>30?firstQ.substring(0,30)+'...':firstQ,conclusion:''};
+    saveNoteEntry(c,firstQ,fullText,summary);
   });
 });
+
+function saveNoteEntry(c,firstQ,fullText,summary){
+  var date=new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+  // 같은 세션의 이전 저장이 있으면 갱신, 없으면 새로 추가
+  if(!notes[askTargetCardId])notes[askTargetCardId]=[];
+  // sessionNoteId로 같은 대화 재저장 여부 판단
+  var existing=notes[askTargetCardId].find(function(n){return n.sessionId===askSessionId;});
+  var entry={id:existing?existing.id:Date.now(),sessionId:askSessionId,date:date,q:firstQ,a:fullText,summary:summary,cardKo:c.ko,cardEn:c.en,turns:askConversation.length/2};
+  if(existing){
+    var idx=notes[askTargetCardId].indexOf(existing);
+    notes[askTargetCardId][idx]=entry;
+  } else {
+    notes[askTargetCardId].unshift(entry);
+  }
+  saveNotes();
+  $('askSaveBtn').disabled=false;$('askSaveBtn').textContent='✓ 저장됨';
+  askSavedCount++;
+  setTimeout(function(){
+    $('askSaveBtn').textContent='💾 저장 갱신';
+    renderAllCards();
+  },1200);
+}
+
+// 세션 ID: 모달 열릴 때마다 새 ID
+var askSessionId=0;
+var _origOpenAsk=openAskModal;
+openAskModal=function(cardId){askSessionId=Date.now();_origOpenAsk(cardId);};
 
 /* ---------- 질문 이력 모달 ---------- */
 function openNotesModal(cardId){
