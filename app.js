@@ -451,8 +451,16 @@ on('sortRandom','click',function(){acSort='random';['sortAdded','sortNg','sortAl
 on('sortReverse','click',function(){acReverse=!acReverse;$('sortReverse').classList.toggle('active',acReverse);renderAllCards();});
 on('filterBm','click',function(){acBmOnly=!acBmOnly;$('filterBm').classList.toggle('active',acBmOnly);renderAllCards();});
 on('filterHasNote','click',function(){acHasNoteOnly=!acHasNoteOnly;$('filterHasNote').classList.toggle('active',acHasNoteOnly);renderAllCards();});
-on('toggleKo','click',function(){acShowKo=!acShowKo;$('toggleKo').classList.toggle('active',acShowKo);renderAllCards();});
-on('toggleEn','click',function(){acShowEn=!acShowEn;$('toggleEn').classList.toggle('active',acShowEn);renderAllCards();});
+on('toggleKo','click',function(){
+  acShowKo=!acShowKo;
+  $('toggleKo').classList.toggle('active',acShowKo);
+  $('allCardsList').querySelectorAll('.fc-ko').forEach(function(el){el.style.color=acShowKo?'':'transparent';});
+});
+on('toggleEn','click',function(){
+  acShowEn=!acShowEn;
+  $('toggleEn').classList.toggle('active',acShowEn);
+  $('allCardsList').querySelectorAll('.fc-en').forEach(function(el){el.style.color=acShowEn?'var(--text-2)':'transparent';});
+});
 on('allCardsSearch','input',function(e){acSearch=e.target.value;renderAllCards();});
 
 on('selectAllBtn','click',function(){
