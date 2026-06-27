@@ -1059,7 +1059,7 @@ function loadNext(){
   // 질문 표시 체크박스 상태 반영
   var qmc=$('quizMarkCheck');
   if(qmc) qmc.checked=!!quizMarkedIds[current.id];
-  $('boxBadge').textContent=isRetry?'재도전':(current.stage===0?'새 카드 / 15분 사이클':'Lv'+current.stage+' ('+STAGE_DAYS[Math.min(current.stage-1,STAGE_DAYS.length-1)]+'일)');
+  $('boxBadge').textContent=isRetry?'재도전':(current.stage===0?'새 카드':'Lv'+current.stage+' · '+STAGE_DAYS[Math.min(current.stage-1,STAGE_DAYS.length-1)]+'일');
   $('koreanText').textContent=current.ko;showHint(0);updateStats();
 }
 

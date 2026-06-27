@@ -374,18 +374,15 @@ select{font-family:'Nunito',sans-serif;background:var(--surface-2);color:var(--t
       <div class="stat"><div class="lbl">미처리 남음</div><div class="val" id="remainingCount" style="color:var(--warning);">0</div></div>
     </div>
     <div class="card" id="quizCard">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <div class="badge" id="boxBadge" style="margin-bottom:0;">새 카드</div>
-          <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-3);font-weight:700;cursor:pointer;">
-            <input type="checkbox" id="quizMarkCheck" style="width:16px;height:16px;accent-color:var(--accent);" />
-            질문 표시
-          </label>
-        </div>
-        <div style="display:flex;gap:5px;">
-          <button type="button" id="quizAskBtn" style="font-size:11px;padding:4px 9px;color:var(--accent-text);border-color:var(--accent);">💬 질문</button>
-          <button type="button" id="quizNotesBtn" style="font-size:11px;padding:4px 9px;color:var(--text-2);">📋 이력</button>
-        </div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:nowrap;overflow:hidden;">
+        <div class="badge" id="boxBadge" style="margin-bottom:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;font-size:10px;">새 카드</div>
+        <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-3);font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;">
+          <input type="checkbox" id="quizMarkCheck" style="width:15px;height:15px;accent-color:var(--accent);" />
+          💬표시
+        </label>
+        <div style="flex:1;"></div>
+        <button type="button" id="quizAskBtn" style="font-size:12px;padding:4px 10px;color:var(--accent-text);border-color:var(--accent);white-space:nowrap;flex-shrink:0;">💬 질문</button>
+        <button type="button" id="quizNotesBtn" style="font-size:12px;padding:4px 10px;color:var(--text-2);white-space:nowrap;flex-shrink:0;">📋 이력</button>
       </div>
       <div id="koreanText"></div>
       <div id="hintText"></div>
