@@ -199,6 +199,8 @@ function setTab(which){
     $(t.btn).classList.toggle('active',t.btn===which);
     $(t.pane).classList.toggle('active',t.btn===which);
   });
+  // 다른 탭으로 이동하면 펼치기 모드 해제
+  if(which!=='tabAllCards'&&memExpanded) collapseMemMode();
   if(which==='tabAllCards')renderAllCards();
   if(which==='tabAdd')refreshAddSelects();
   if(which==='tabSettings')renderSettingsPane();
@@ -574,31 +576,59 @@ function renderMemCards(vis){
     list.appendChild(row);
   });
 }
-function openMemMode(){
-  renderMemCards(memGetVisible());
-  $('memModeOverlay').style.display='flex';
-  document.body.style.overflow='hidden';
+// 펼치기 모드 - 메뉴 전부 숨기고 카드만 보이게
+var memExpanded=false;
+// 펼쳤을 때 숨길 요소들 (탭바, 툴바, 검색, 챕터칩 등)
+var MEM_HIDE_SELECTORS=['.main-tabs','.ac-toolbar','#allCardsSearch','.chip-row',
+  'div[style*="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px"]'];
+
+function expandMemMode(){
+  memExpanded=true;
+  // 전체문장 탭 안에서 카드리스트 위의 요소들 숨기기
+  var pane=$('allCardsPane');
+  var children=pane.querySelector('.card').children;
+  for(var i=0;i<children.length;i++){
+    var el=children[i];
+    if(el.id==='allCardsList'||el.id==='allCardsEmpty') continue;
+    el.dataset.memHidden='1';
+    el.style.display='none';
+  }
+  // 탭 바도 숨기기
+  var tabs=document.querySelector('.main-tabs');
+  if(tabs){tabs.dataset.memHidden='1';tabs.style.display='none';}
+  // floating 접기 버튼 표시
+  $('memCollapseBtn').style.display='block';
+  $('memModeBtn').style.display='none';
 }
 
-on('memModeBtn','click',function(){openMemMode();});
-on('memModeClose','click',function(){
-  $('memModeOverlay').style.display='none';
-  document.body.style.overflow='';
-  renderAllCards();
+function collapseMemMode(){
+  memExpanded=false;
+  // 숨긴 요소들 복원
+  var pane=$('allCardsPane');
+  var children=pane.querySelector('.card').children;
+  for(var i=0;i<children.length;i++){
+    var el=children[i];
+    if(el.dataset.memHidden){
+      el.style.display='';
+      delete el.dataset.memHidden;
+    }
+  }
+  var tabs=document.querySelector('.main-tabs');
+  if(tabs&&tabs.dataset.memHidden){tabs.style.display='';delete tabs.dataset.memHidden;}
+  $('memCollapseBtn').style.display='none';
+  $('memModeBtn').style.display='';
+}
+
+on('memModeBtn','click',function(){
+  // 전체문장 탭으로 이동 후 펼치기
+  setTab('tabAllCards');
+  setTimeout(expandMemMode,50);
 });
-on('memToggleKo','click',function(){
-  memShowKo=!memShowKo;
-  $('memToggleKo').classList.toggle('active',memShowKo);
-  // 재렌더링 없이 DOM에서 ko 줄 color만 직접 변경 → 스크롤 고정
-  var koEls=$('memCardList').querySelectorAll('[data-mem="ko"]');
-  koEls.forEach(function(el){el.style.color=memShowKo?'':'transparent';});
-});
-on('memToggleEn','click',function(){
-  memShowEn=!memShowEn;
-  $('memToggleEn').classList.toggle('active',memShowEn);
-  var enEls=$('memCardList').querySelectorAll('[data-mem="en"]');
-  enEls.forEach(function(el){el.style.color=memShowEn?'var(--text-2)':'transparent';});
-});
+on('memCollapseBtn','click',collapseMemMode);
+
+// 한국어/영어 토글은 전체문장 탭의 toggleKo/toggleEn 그대로 사용
+// (별도 memToggleKo/En 핸들러 불필요)
+
 
 on('ngBulkBtn','click',function(){
   var ids=Object.keys(acCheckedIds).map(Number);
