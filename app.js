@@ -1086,6 +1086,7 @@ function loadNext(){
   // 질문 표시 체크박스 상태 반영
   var qmc=$('quizMarkCheck');
   if(qmc) qmc.checked=!!quizMarkedIds[current.id];
+  updateQuizStar();
   $('boxBadge').textContent=isRetry?'재도전':(current.stage===0?'새 카드':'Lv'+current.stage+' · '+STAGE_DAYS[Math.min(current.stage-1,STAGE_DAYS.length-1)]+'일');
   $('koreanText').textContent=current.ko;showHint(0);updateStats();
 }
@@ -1331,7 +1332,21 @@ on('quizMarkCheck','click',function(){
   if(!current)return;
   if($('quizMarkCheck').checked) quizMarkedIds[current.id]=true;
   else delete quizMarkedIds[current.id];
+  updateQuizStar();
 });
+// 별표 label 클릭 시 체크박스 토글
+$('quizMarkStar').parentElement.addEventListener('click',function(){
+  if(!current)return;
+  var cb=$('quizMarkCheck');cb.checked=!cb.checked;
+  if(cb.checked)quizMarkedIds[current.id]=true;else delete quizMarkedIds[current.id];
+  updateQuizStar();
+});
+function updateQuizStar(){
+  var star=$('quizMarkStar');if(!star)return;
+  var marked=current&&quizMarkedIds[current.id];
+  star.textContent=marked?'★':'☆';
+  star.style.color=marked?'var(--warning)':'var(--text-3)';
+}
 on('quizAskBtn','click',function(){if(current)openAskModal(current.id);});
 on('quizNotesBtn','click',function(){if(current)openNotesModal(current.id);});
 
