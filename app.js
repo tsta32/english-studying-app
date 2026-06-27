@@ -744,26 +744,35 @@ on('editConfirmApply','click',function(){
 
 
 /* ---------- add card ---------- */
+// 챕터 화살표 네비게이터
+var bulkChapterIdx=0;
 function refreshAddSelects(){
-  ['addChapterSelect','bulkChapterSelect'].forEach(function(sid){
-    var sel=$(sid);if(!sel)return;sel.innerHTML='';
-    if(!chapters.length){var opt=document.createElement('option');opt.value='';opt.textContent='(챕터 없음 — 설정 탭에서 먼저 만들기)';sel.appendChild(opt);}
-    else chapters.forEach(function(ch){var opt=document.createElement('option');opt.value=ch.id;opt.textContent=ch.name;sel.appendChild(opt);});
-  });
+  // 화살표 네비 업데이트
+  updateBulkChapterNav();
 }
-function parseChId(selId){var s=$(selId);if(!s||!s.value)return null;return parseInt(s.value,10)||null;}
+function updateBulkChapterNav(){
+  var disp=$('bulkChapterDisplay');
+  var hiddenInput=$('bulkChapterSelect');
+  if(!disp||!hiddenInput)return;
+  if(chapters.length===0){
+    disp.textContent='챕터 없음 — 설정 탭에서 먼저 만들어주세요';
+    hiddenInput.value='';
+    return;
+  }
+  bulkChapterIdx=((bulkChapterIdx%chapters.length)+chapters.length)%chapters.length;
+  var ch=chapters[bulkChapterIdx];
+  disp.textContent=ch.name+' ('+chapterCardCount(ch.id)+'개)';
+  hiddenInput.value=String(ch.id);
+}
+function parseChId(selId){
+  // hidden input 방식
+  var s=$(selId);if(!s)return null;
+  var v=parseInt(s.value,10);return isNaN(v)?null:v;
+}
+on('bulkChapterPrev','click',function(){bulkChapterIdx--;updateBulkChapterNav();});
+on('bulkChapterNext','click',function(){bulkChapterIdx++;updateBulkChapterNav();});
 
-on('addModeSingle','click',function(){$('addModeSingle').classList.add('active');$('addModeBulk').classList.remove('active');$('addPaneSingle').classList.add('active');$('addPaneBulk').classList.remove('active');});
-on('addModeBulk','click',function(){$('addModeBulk').classList.add('active');$('addModeSingle').classList.remove('active');$('addPaneBulk').classList.add('active');$('addPaneSingle').classList.remove('active');});
 
-on('addCardBtn','click',function(){
-  var ko=$('newKo').value.trim(),en=$('newEn').value.trim(),fb=$('addFeedback');
-  if(!ko||!en){fb.textContent='한국어 뜻과 영어 정답을 입력해주세요';fb.style.color='var(--danger-text)';return;}
-  cards.push({id:nextCardId++,ko:ko,en:en,chapterId:parseChId('addChapterSelect'),stage:0,dueAt:now(),bookmarked:$('newBookmark').checked,everAnswered:false,ngCount:0});
-  saveCards();$('newKo').value='';$('newEn').value='';$('newBookmark').checked=false;
-  fb.textContent='카드가 추가되었습니다';fb.style.color='var(--success-text)';refreshSetupInfo();
-  setTimeout(function(){fb.textContent='';},1800);
-});
 on('bulkAddBtn','click',function(){
   var raw=$('bulkInput').value,fb=$('bulkResult'),chId=parseChId('bulkChapterSelect'),added=0,skipped=0;
   raw.split(/\r\n|\r|\n/).forEach(function(line){

@@ -1,4 +1,4 @@
-var CACHE_NAME = 'srs-app-v33';
+var CACHE_NAME = 'srs-app-v34';
 var ASSETS = [
   './index.html',
   './app.js',
