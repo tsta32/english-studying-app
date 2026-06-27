@@ -620,9 +620,13 @@ function collapseMemMode(){
 }
 
 on('memModeBtn','click',function(){
-  // 전체문장 탭으로 이동 후 펼치기
-  setTab('tabAllCards');
-  setTimeout(expandMemMode,50);
+  // 이미 전체문장 탭이면 재렌더링 없이 바로 펼치기
+  if($('allCardsPane').classList.contains('active')){
+    expandMemMode();
+  } else {
+    setTab('tabAllCards');
+    setTimeout(expandMemMode,50);
+  }
 });
 on('memCollapseBtn','click',collapseMemMode);
 
