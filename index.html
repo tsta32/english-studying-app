@@ -207,25 +207,24 @@ select{font-family:'Nunito',sans-serif;background:var(--surface-2);color:var(--t
         <p class="muted" id="customCountHint" style="margin-bottom:8px;"></p>
         <p class="muted" id="newCardRatioInfo" style="margin-bottom:10px;"></p>
 
-        <div class="ng-filter-box">
-          <label>
-            <input type="checkbox" id="ngFilterCheck" />
-            재도전 누적
-            <input type="number" id="ngFilterCount" value="3" min="1" max="999" inputmode="numeric" />
-            회 이상인 문제만 출제
-          </label>
-          <p class="muted" id="ngFilterInfo" style="margin-top:6px;min-height:14px;"></p>
-        </div>
-
         <div class="ng-filter-box" style="margin-bottom:12px;">
-          <label style="margin-bottom:8px;">
-            <input type="checkbox" id="bmFilterCheck" />
-            ★ 북마크된 문장만 출제
-          </label>
-          <div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-            <span style="font-size:13px;font-weight:700;">출제 순서</span>
-            <button type="button" id="orderAdded" class="sort-btn active" style="font-size:12px;padding:5px 10px;">추가순</button>
-            <button type="button" id="orderRandom" class="sort-btn" style="font-size:12px;padding:5px 10px;">랜덤</button>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;cursor:pointer;flex-wrap:wrap;">
+              <input type="checkbox" id="ngFilterCheck" style="width:auto;height:auto;accent-color:var(--accent);" />
+              재도전 누적
+              <input type="number" id="ngFilterCount" value="3" min="1" max="999" inputmode="numeric" style="width:58px;height:34px;font-size:13px;padding:0 10px;" />
+              회 이상인 문제만 출제
+            </label>
+            <p class="muted" id="ngFilterInfo" style="margin-top:-6px;min-height:14px;"></p>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;cursor:pointer;">
+              <input type="checkbox" id="bmFilterCheck" style="width:auto;height:auto;accent-color:var(--accent);" />
+              ★ 북마크된 문장만 출제
+            </label>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <span style="font-size:13px;font-weight:700;">출제 순서</span>
+              <button type="button" id="orderAdded" class="sort-btn active" style="font-size:12px;padding:5px 10px;">추가순</button>
+              <button type="button" id="orderRandom" class="sort-btn" style="font-size:12px;padding:5px 10px;">랜덤</button>
+            </div>
           </div>
         </div>
 
@@ -242,6 +241,7 @@ select{font-family:'Nunito',sans-serif;background:var(--surface-2);color:var(--t
           <button type="button" id="sortAdded" class="sort-btn active">추가순</button>
           <button type="button" id="sortNg" class="sort-btn">오답순</button>
           <button type="button" id="sortAlpha" class="sort-btn">알파벳순</button>
+          <button type="button" id="sortRandom" class="sort-btn">랜덤</button>
           <button type="button" id="sortReverse" class="sort-btn" title="역순">⇅</button>
           <button type="button" id="filterBm" class="sort-btn">★ 북마크</button>
         </div>
@@ -254,6 +254,7 @@ select{font-family:'Nunito',sans-serif;background:var(--surface-2);color:var(--t
           <div style="flex:1;"></div>
           <button type="button" id="ngBulkBtn" class="ng-bulk-btn" style="font-size:14px;font-weight:500;padding:9px 16px;" disabled>오답 처리</button>
           <button type="button" id="editBulkBtn" style="font-size:13px;padding:8px 14px;border-color:var(--accent);color:var(--accent-text);" disabled>✏️ 편집</button>
+          <button type="button" id="delBulkBtn" class="ng-bulk-btn" style="font-size:13px;padding:8px 14px;" disabled>🗑 삭제</button>
         </div>
         <input type="text" id="allCardsSearch" placeholder="한국어 또는 영어로 검색" style="margin-bottom:10px;" />
         <div class="chip-row" id="acChapterFilter"></div>

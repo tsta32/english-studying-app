@@ -343,6 +343,7 @@ function renderAllCards(){
   if(acSort==='added')vis.reverse();
   else if(acSort==='ng')vis.sort(function(a,b){return(b.ngCount||0)-(a.ngCount||0);});
   else if(acSort==='alpha')vis.sort(function(a,b){return a.en.localeCompare(b.en);});
+  else if(acSort==='random')shuffleArray(vis);
   if(acReverse)vis.reverse();
   var listEl=$('allCardsList'),emptyEl=$('allCardsEmpty');
   listEl.innerHTML='';
@@ -380,11 +381,13 @@ function updateBulkBar(){
   var n=Object.keys(acCheckedIds).length;
   $('ngBulkBtn').disabled=n===0;
   $('editBulkBtn').disabled=n===0;
+  $('delBulkBtn').disabled=n===0;
 }
 
-on('sortAdded','click',function(){acSort='added';['sortAdded','sortNg','sortAlpha'].forEach(function(id){$(id).classList.remove('active');});$('sortAdded').classList.add('active');renderAllCards();});
-on('sortNg','click',function(){acSort='ng';['sortAdded','sortNg','sortAlpha'].forEach(function(id){$(id).classList.remove('active');});$('sortNg').classList.add('active');renderAllCards();});
-on('sortAlpha','click',function(){acSort='alpha';['sortAdded','sortNg','sortAlpha'].forEach(function(id){$(id).classList.remove('active');});$('sortAlpha').classList.add('active');renderAllCards();});
+on('sortAdded','click',function(){acSort='added';['sortAdded','sortNg','sortAlpha','sortRandom'].forEach(function(id){$(id).classList.remove('active');});$('sortAdded').classList.add('active');renderAllCards();});
+on('sortNg','click',function(){acSort='ng';['sortAdded','sortNg','sortAlpha','sortRandom'].forEach(function(id){$(id).classList.remove('active');});$('sortNg').classList.add('active');renderAllCards();});
+on('sortAlpha','click',function(){acSort='alpha';['sortAdded','sortNg','sortAlpha','sortRandom'].forEach(function(id){$(id).classList.remove('active');});$('sortAlpha').classList.add('active');renderAllCards();});
+on('sortRandom','click',function(){acSort='random';['sortAdded','sortNg','sortAlpha','sortRandom'].forEach(function(id){$(id).classList.remove('active');});$('sortRandom').classList.add('active');renderAllCards();});
 on('sortReverse','click',function(){acReverse=!acReverse;$('sortReverse').classList.toggle('active',acReverse);renderAllCards();});
 on('filterBm','click',function(){acBmOnly=!acBmOnly;$('filterBm').classList.toggle('active',acBmOnly);renderAllCards();});
 on('toggleKo','click',function(){acShowKo=!acShowKo;$('toggleKo').classList.toggle('active',acShowKo);renderAllCards();});
@@ -543,6 +546,16 @@ on('ngBulkBtn','click',function(){
   });
   saveCards();acCheckedIds={};renderAllCards();refreshSetupInfo();
 });
+on('delBulkBtn','click',function(){
+  var ids=Object.keys(acCheckedIds).map(Number);
+  if(!ids.length)return;
+  if(!confirm(ids.length+'개 문장을 삭제할까요?'))return;
+  var s={};ids.forEach(function(id){s[id]=true;});
+  cards=cards.filter(function(c){return!s[c.id];});
+  saveCards();acCheckedIds={};
+  renderAllCards();refreshSetupInfo();
+});
+
 on('editBulkBtn','click',function(){
   var ids=Object.keys(acCheckedIds).map(Number);
   if(!ids.length)return;
