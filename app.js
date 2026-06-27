@@ -1273,27 +1273,7 @@ on('markCorrectBtn','click',finalizeCorrect);on('markWrongBtn','click',escalateW
 on('cancelSessionBtn','click',function(){$('cancelModal').classList.add('show');});
 
 on('failAllBtn','click',function(){
-  if(!confirm('남은 문제를 전부 오답 처리하고 종료할까요?'))return;
-  // 현재 카드(아직 처리 안 된 것) + 큐에 남은 카드 전부 오답 처리
-  var remaining=[];
-  if(current) remaining.push(current.id);
-  sessionQueue.forEach(function(id){remaining.push(id);});
-  retryQueue.forEach(function(id){if(remaining.indexOf(id)===-1)remaining.push(id);});
-  var now_=now();
-  remaining.forEach(function(id){
-    var c=findCard(id);if(!c)return;
-    var alreadyMissed=sessionMissedIds.indexOf(id)!==-1;
-    if(!alreadyMissed) c.ngCount=(c.ngCount||0)+1;
-    sessionMissedIds.push(id);
-    c.everAnswered=true;
-    c.stage=0;
-    c.dueAt=now_+FIFTEEN_MIN;
-  });
-  saveCards();
-  sessionQueue=[];retryQueue=[];current=null;
-  finishSession();
-});
-on('failAllBtn','click',function(){
+  // 바로 모달 표시 (confirm 없음)on('failAllBtn','click',function(){
   // 남은 카드 목록 보여주고 확인 받기
   var remaining=[];
   if(current) remaining.push(current.id);
