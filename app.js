@@ -146,11 +146,16 @@ function diffHL(y,a){
 /* ---------- persistence ---------- */
 function saveCards(){try{localStorage.setItem(CARDS_KEY,JSON.stringify({cards:cards,nextId:nextCardId}));}catch(e){}}
 function saveChapters(){try{localStorage.setItem(CHAPTERS_KEY,JSON.stringify({chapters:chapters,nextId:nextChapterId}));}catch(e){}}
-function saveSettings(){try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));}catch(e){}}
+function saveSettings(){try{localStorage.setItem(SETTINGS_KEY,JSON.stringify({volume:settings.volume,newCardRatio:settings.newCardRatio,acSort:acSort,quizOrder:quizOrder}));}catch(e){}}
 function loadAll(){
   try{var cr=localStorage.getItem(CHAPTERS_KEY);if(cr){var cp=JSON.parse(cr);if(cp&&Array.isArray(cp.chapters)){chapters=cp.chapters;nextChapterId=cp.nextId||(chapters.reduce(function(m,c){return Math.max(m,c.id);},0)+1);}}}catch(e){}
   try{var raw=localStorage.getItem(CARDS_KEY);if(raw){var p=JSON.parse(raw);if(p&&Array.isArray(p.cards)){cards=p.cards;cards.forEach(function(c){if(typeof c.everAnswered!=='boolean')c.everAnswered=(c.stage||0)>0;if(typeof c.ngCount!=='number')c.ngCount=0;if(typeof c.chapterId==='undefined')c.chapterId=null;});nextCardId=p.nextId||(cards.reduce(function(m,c){return Math.max(m,c.id);},0)+1);}}}catch(e){}
-  try{var sr=localStorage.getItem(SETTINGS_KEY);if(sr){var sp=JSON.parse(sr);if(sp){if(typeof sp.volume==='number')settings.volume=sp.volume;if(typeof sp.newCardRatio==='number')settings.newCardRatio=sp.newCardRatio;}}}catch(e){}
+  try{var sr=localStorage.getItem(SETTINGS_KEY);if(sr){var sp=JSON.parse(sr);if(sp){
+    if(typeof sp.volume==='number')settings.volume=sp.volume;
+    if(typeof sp.newCardRatio==='number')settings.newCardRatio=sp.newCardRatio;
+    if(typeof sp.acSort==='string')acSort=sp.acSort;
+    if(typeof sp.quizOrder==='string')quizOrder=sp.quizOrder;
+  }}}catch(e){}
   try{var nr=localStorage.getItem(NOTES_KEY);if(nr)notes=JSON.parse(nr)||{};}catch(e){}
   try{var tr=localStorage.getItem(TRENDS_KEY);if(tr)trends=JSON.parse(tr)||[];}catch(e){}
   try{var ak=localStorage.getItem(APIKEY_KEY);if(ak)apiKey=ak;}catch(e){}
@@ -281,6 +286,7 @@ on('bmFilterCheck','change',function(){quizBmOnly=$('bmFilterCheck').checked;ref
     quizOrder=id.replace('order','').toLowerCase();
     ['orderAdded','orderReverse','orderAlpha','orderRandom'].forEach(function(bid){$(bid).classList.remove('active');});
     $(id).classList.add('active');
+    saveSettings();
     refreshSetupInfo();
   });
 });
@@ -436,10 +442,10 @@ function updateBulkBar(){
   $('delBulkBtn').disabled=n===0;
 }
 
-on('sortAdded','click',function(){acSort='added';['sortAdded','sortNg','sortAlpha','sortRandom'].forEach(function(id){$(id).classList.remove('active');});$('sortAdded').classList.add('active');renderAllCards();});
-on('sortNg','click',function(){acSort='ng';['sortAdded','sortNg','sortAlpha','sortRandom'].forEach(function(id){$(id).classList.remove('active');});$('sortNg').classList.add('active');renderAllCards();});
-on('sortAlpha','click',function(){acSort='alpha';['sortAdded','sortNg','sortAlpha','sortRandom'].forEach(function(id){$(id).classList.remove('active');});$('sortAlpha').classList.add('active');renderAllCards();});
-on('sortRandom','click',function(){acSort='random';['sortAdded','sortNg','sortAlpha','sortRandom'].forEach(function(id){$(id).classList.remove('active');});$('sortRandom').classList.add('active');renderAllCards();});
+on('sortAdded','click',function(){acSort='added';['sortAdded','sortNg','sortAlpha','sortRandom'].forEach(function(id){$(id).classList.remove('active');});$('sortAdded').classList.add('active');saveSettings();renderAllCards();});
+on('sortNg','click',function(){acSort='ng';['sortAdded','sortNg','sortAlpha','sortRandom'].forEach(function(id){$(id).classList.remove('active');});$('sortNg').classList.add('active');saveSettings();renderAllCards();});
+on('sortAlpha','click',function(){acSort='alpha';['sortAdded','sortNg','sortAlpha','sortRandom'].forEach(function(id){$(id).classList.remove('active');});$('sortAlpha').classList.add('active');saveSettings();renderAllCards();});
+on('sortRandom','click',function(){acSort='random';['sortAdded','sortNg','sortAlpha','sortRandom'].forEach(function(id){$(id).classList.remove('active');});$('sortRandom').classList.add('active');saveSettings();renderAllCards();});
 on('sortReverse','click',function(){acReverse=!acReverse;$('sortReverse').classList.toggle('active',acReverse);renderAllCards();});
 on('filterBm','click',function(){acBmOnly=!acBmOnly;$('filterBm').classList.toggle('active',acBmOnly);renderAllCards();});
 on('filterHasNote','click',function(){acHasNoteOnly=!acHasNoteOnly;$('filterHasNote').classList.toggle('active',acHasNoteOnly);renderAllCards();});
@@ -853,8 +859,29 @@ on('ratioMinus','click',function(){settings.newCardRatio=Math.max(2,settings.new
 on('ratioPlus','click',function(){settings.newCardRatio=Math.min(50,settings.newCardRatio+1);$('ratioValue').textContent=settings.newCardRatio+'문제당 1개';saveSettings();refreshSetupInfo();});
 
 /* ---------- audio ---------- */
-var audioCtx=null,masterComp=null;
-function getACtx(){if(!audioCtx){try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){return null;}}if(audioCtx.state==='suspended')audioCtx.resume();return audioCtx;}
+var audioCtx=null,masterComp=null,audioUnlocked=false;
+
+function unlockAudio(){
+  if(audioUnlocked)return;
+  var ctx=getACtx();if(!ctx)return;
+  // iOS Safari: 무음 버퍼를 한 번 재생해야 스피커가 활성화됨
+  var buf=ctx.createBuffer(1,1,22050);
+  var src=ctx.createBufferSource();
+  src.buffer=buf;src.connect(ctx.destination);src.start(0);
+  ctx.resume().then(function(){audioUnlocked=true;});
+}
+// 첫 터치/클릭 시 unlock (이어폰 없어도 스피커 작동)
+document.addEventListener('touchstart',unlockAudio,{once:false,passive:true});
+document.addEventListener('touchend',unlockAudio,{once:false,passive:true});
+document.addEventListener('click',unlockAudio,{once:false,passive:true});
+
+function getACtx(){
+  if(!audioCtx){
+    try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){return null;}
+  }
+  if(audioCtx.state==='suspended')audioCtx.resume();
+  return audioCtx;
+}
 function getMC(ctx){if(!masterComp||masterComp.context!==ctx){masterComp=ctx.createDynamicsCompressor();masterComp.threshold.value=-12;masterComp.knee.value=18;masterComp.ratio.value=8;masterComp.attack.value=0.002;masterComp.release.value=0.15;masterComp.connect(ctx.destination);}return masterComp;}
 function tone(freq,t0,dur,type,gp){
   var ctx=getACtx();if(!ctx)return;
@@ -1577,6 +1604,15 @@ if('serviceWorker' in navigator){window.addEventListener('load',function(){navig
 
 /* ---------- init ---------- */
 loadAll();
+// 저장된 정렬/출제순서 버튼 활성화 상태 복원
+(function(){
+  // 전체문장 정렬
+  var sortBtns={added:'sortAdded',ng:'sortNg',alpha:'sortAlpha',random:'sortRandom'};
+  Object.keys(sortBtns).forEach(function(k){if($( sortBtns[k]))$(sortBtns[k]).classList.toggle('active',acSort===k);});
+  // 출제순서
+  var orderBtns={added:'orderAdded',reverse:'orderReverse',alpha:'orderAlpha',random:'orderRandom'};
+  Object.keys(orderBtns).forEach(function(k){if($(orderBtns[k]))$(orderBtns[k]).classList.toggle('active',quizOrder===k);});
+})();
 renderChapterSelector();refreshAddSelects();renderAcFilter();
 refreshSetupInfo();renderAllCards();
 })();
