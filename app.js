@@ -584,37 +584,47 @@ var MEM_HIDE_SELECTORS=['.main-tabs','.ac-toolbar','#allCardsSearch','.chip-row'
 
 function expandMemMode(){
   memExpanded=true;
-  // 전체문장 탭 안에서 카드리스트 위의 요소들 숨기기
   var pane=$('allCardsPane');
-  var children=pane.querySelector('.card').children;
+  var card=pane.querySelector('.card');
+  var children=card.children;
+  // 보존할 요소: 카드목록, 빈상태, 한국어/영어 토글 버튼이 담긴 두 번째 줄
+  var keepIds=['allCardsList','allCardsEmpty','toggleKo','toggleEn'];
   for(var i=0;i<children.length;i++){
     var el=children[i];
-    if(el.id==='allCardsList'||el.id==='allCardsEmpty') continue;
+    // 이 요소 안에 toggleKo/toggleEn이 있으면 남기기
+    if(el.querySelector&&(el.querySelector('#toggleKo')||el.querySelector('#toggleEn'))) continue;
+    // 직접 카드목록/빈상태면 남기기
+    if(keepIds.indexOf(el.id)!==-1) continue;
     el.dataset.memHidden='1';
     el.style.display='none';
   }
-  // 탭 바도 숨기기
+  // 탭 바, urgency-grid도 숨기기
   var tabs=document.querySelector('.main-tabs');
   if(tabs){tabs.dataset.memHidden='1';tabs.style.display='none';}
-  // floating 접기 버튼 표시
+  var urgency=$('urgencyDetails');
+  if(urgency){urgency.dataset.memHidden='1';urgency.style.display='none';}
+  // 앱 제목도 숨기기
+  var h1=document.querySelector('#app h1');
+  if(h1&&h1.parentElement){h1.parentElement.dataset.memHidden='1';h1.parentElement.style.display='none';}
   $('memCollapseBtn').style.display='block';
   $('memModeBtn').style.display='none';
 }
 
 function collapseMemMode(){
   memExpanded=false;
-  // 숨긴 요소들 복원
   var pane=$('allCardsPane');
-  var children=pane.querySelector('.card').children;
+  var card=pane.querySelector('.card');
+  var children=card.children;
   for(var i=0;i<children.length;i++){
     var el=children[i];
-    if(el.dataset.memHidden){
-      el.style.display='';
-      delete el.dataset.memHidden;
-    }
+    if(el.dataset.memHidden){el.style.display='';delete el.dataset.memHidden;}
   }
   var tabs=document.querySelector('.main-tabs');
   if(tabs&&tabs.dataset.memHidden){tabs.style.display='';delete tabs.dataset.memHidden;}
+  var urgency=$('urgencyDetails');
+  if(urgency&&urgency.dataset.memHidden){urgency.style.display='';delete urgency.dataset.memHidden;}
+  var h1=document.querySelector('#app h1');
+  if(h1&&h1.parentElement&&h1.parentElement.dataset.memHidden){h1.parentElement.style.display='';delete h1.parentElement.dataset.memHidden;}
   $('memCollapseBtn').style.display='none';
   $('memModeBtn').style.display='';
 }

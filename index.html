@@ -177,10 +177,15 @@ select{font-family:'Nunito',sans-serif;background:var(--surface-2);color:var(--t
       <h1 style="font-size:20px;">Memory</h1>
     </div>
 
-    <div class="urgency-grid">
-      <div class="urg-card overdue"><div class="num" id="overdueCount">0</div><div class="lbl">지금 밀린 카드</div></div>
-      <div class="urg-card soon"><div class="num" id="dueSoonCount">0</div><div class="lbl">내일까지 돌아올 카드</div></div>
-    </div>
+    <details id="urgencyDetails" open style="margin-bottom:0;">
+      <summary style="list-style:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:6px 2px;margin-bottom:8px;">
+        <span style="font-size:12px;font-weight:700;color:var(--text-3);">▾ 복습 현황</span>
+      </summary>
+      <div class="urgency-grid">
+        <div class="urg-card overdue"><div class="num" id="overdueCount">0</div><div class="lbl">지금 밀린 카드</div></div>
+        <div class="urg-card soon"><div class="num" id="dueSoonCount">0</div><div class="lbl">내일까지 돌아올 카드</div></div>
+      </div>
+    </details>
 
     <div class="main-tabs">
       <button class="main-tab active" id="tabQuiz">학습</button>
