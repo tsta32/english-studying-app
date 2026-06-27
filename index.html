@@ -246,6 +246,7 @@ select{font-family:'Nunito',sans-serif;background:var(--surface-2);color:var(--t
           <button type="button" id="sortRandom" class="sort-btn">랜덤</button>
           <button type="button" id="sortReverse" class="sort-btn" title="역순">⇅</button>
           <button type="button" id="filterBm" class="sort-btn">★ 북마크</button>
+          <button type="button" id="filterHasNote" class="sort-btn">💬 질문 있는</button>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px;">
           <button type="button" id="toggleKo" class="toggle-btn active">한국어</button>
@@ -316,6 +317,19 @@ select{font-family:'Nunito',sans-serif;background:var(--surface-2);color:var(--t
     <!-- SETTINGS PANE -->
     <div class="pane" id="settingsPane">
       <div class="card" style="margin-bottom:12px;">
+        <h2 style="font-size:15px;margin-bottom:12px;">🔑 클로드 API 설정</h2>
+        <div class="form-row">
+          <label class="form-label">Anthropic API 키</label>
+          <input type="password" id="apiKeyInput" placeholder="sk-ant-..." autocomplete="off" autocapitalize="off" />
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:6px;">
+          <button type="button" id="apiKeySaveBtn" style="flex:1;border-color:var(--accent);color:var(--accent-text);">저장</button>
+          <button type="button" id="apiKeyClearBtn" style="border-color:var(--danger);color:var(--danger);">삭제</button>
+        </div>
+        <p class="muted" id="apiKeyStatus" style="min-height:14px;"></p>
+        <button type="button" id="trendOpenBtn" style="width:100%;margin-top:8px;border-color:var(--info);color:var(--info-text);">📊 질문 경향 분석</button>
+      </div>
+      <div class="card" style="margin-bottom:12px;">
         <h2 style="font-size:15px;margin-bottom:8px;">⚙ 설정</h2>
         <div class="srow">
           <div><div class="slbl">정답 효과음 음량</div><div class="ssub">오답은 무음</div></div>
@@ -351,6 +365,7 @@ select{font-family:'Nunito',sans-serif;background:var(--surface-2);color:var(--t
   <div id="quizScreen" style="display:none;">
     <div class="quiz-top">
       <button type="button" class="cancel-link" id="cancelSessionBtn">← 취소하고 홈으로</button>
+      <button type="button" id="failAllBtn" style="font-size:12px;padding:6px 10px;color:var(--danger);border-color:var(--danger);">나머지 전부 오답처리 후 종료</button>
     </div>
     <div class="stats-bar">
       <div class="stat"><div class="lbl">정답 처리</div><div class="val" id="progressCount">0/0</div></div>
@@ -358,7 +373,19 @@ select{font-family:'Nunito',sans-serif;background:var(--surface-2);color:var(--t
       <div class="stat"><div class="lbl">미처리 남음</div><div class="val" id="remainingCount" style="color:var(--warning);">0</div></div>
     </div>
     <div class="card" id="quizCard">
-      <div class="badge" id="boxBadge">새 카드</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="badge" id="boxBadge" style="margin-bottom:0;">새 카드</div>
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-3);font-weight:700;cursor:pointer;">
+            <input type="checkbox" id="quizMarkCheck" style="width:16px;height:16px;accent-color:var(--accent);" />
+            질문 표시
+          </label>
+        </div>
+        <div style="display:flex;gap:5px;">
+          <button type="button" id="quizAskBtn" style="font-size:11px;padding:4px 9px;color:var(--accent-text);border-color:var(--accent);">💬 질문</button>
+          <button type="button" id="quizNotesBtn" style="font-size:11px;padding:4px 9px;color:var(--text-2);">📋 이력</button>
+        </div>
+      </div>
       <div id="koreanText"></div>
       <div id="hintText"></div>
       <div id="hintLabel"></div>
@@ -391,10 +418,17 @@ select{font-family:'Nunito',sans-serif;background:var(--surface-2);color:var(--t
         <div style="font-size:13px;font-weight:700;margin-bottom:8px;border-top:1px solid var(--border);padding-top:14px;">이번에 힘들었던 문장</div>
         <div id="missedList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;"></div>
       </div>
+      <div id="doneMarkedSection" style="display:none;border-top:1px solid var(--border);padding-top:14px;margin-bottom:14px;">
+        <div style="font-size:13px;font-weight:700;margin-bottom:8px;">💬 질문 표시한 문장</div>
+        <div id="doneMarkedList" style="display:flex;flex-direction:column;gap:6px;"></div>
+      </div>
       <div style="border-top:1px solid var(--border);padding-top:14px;margin-bottom:14px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
           <div style="font-size:13px;font-weight:700;">이번 테스트 문장 (<span id="doneCardCount">0</span>개)</div>
-          <button type="button" id="doneEditToggleBtn" style="font-size:12px;padding:5px 12px;border-color:var(--accent);color:var(--accent-text);">✏️ 편집</button>
+          <div style="display:flex;gap:6px;">
+            <button type="button" id="doneCopyBtn" style="font-size:12px;padding:5px 10px;">📋 선택 복사</button>
+            <button type="button" id="doneEditToggleBtn" style="font-size:12px;padding:5px 12px;border-color:var(--accent);color:var(--accent-text);">✏️ 편집</button>
+          </div>
         </div>
         <div id="doneCardList" style="display:flex;flex-direction:column;gap:8px;max-height:400px;overflow-y:auto;"></div>
       </div>
@@ -420,6 +454,68 @@ select{font-family:'Nunito',sans-serif;background:var(--surface-2);color:var(--t
 </div>
 
 <!-- edit modal -->
+<!-- ===== QA MODALS ===== -->
+
+<!-- ask modal -->
+<div class="modal-overlay" id="askModal" style="align-items:flex-start;padding:12px;overflow-y:auto;">
+  <div class="modal-box" style="max-width:480px;width:100%;max-height:none;margin-top:8px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+      <h3 style="font-size:16px;">💬 클로드에게 질문</h3>
+      <button type="button" id="askModalClose" style="padding:4px 10px;font-size:13px;">✕</button>
+    </div>
+    <div id="askCardPreview" style="font-size:13px;color:var(--text-2);background:var(--surface-2);border-radius:var(--r-md);padding:8px 12px;margin-bottom:10px;"></div>
+    <div id="askQuickBtns" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;"></div>
+    <textarea id="askInput" style="width:100%;min-height:80px;font-family:'Nunito',sans-serif;font-size:14px;padding:10px 12px;border-radius:var(--r-md);border:1.5px solid var(--border-strong);background:var(--surface);color:var(--text);resize:vertical;line-height:1.6;margin-bottom:10px;" placeholder="질문을 입력하세요..."></textarea>
+    <div id="askLoading" style="display:none;font-size:13px;color:var(--text-3);text-align:center;padding:12px;">⏳ 답변 생성 중...</div>
+    <div id="askAnswer" style="display:none;background:var(--surface-2);border-radius:var(--r-md);padding:12px;font-size:14px;line-height:1.7;margin-bottom:10px;white-space:pre-wrap;max-height:320px;overflow-y:auto;"></div>
+    <div class="modal-actions">
+      <button type="button" id="askModalClose2">닫기</button>
+      <button type="button" id="askSaveBtn" style="display:none;border-color:var(--success);color:var(--success-text);">💾 이력에 저장</button>
+      <button type="button" id="askSendBtn" style="border-color:var(--accent);color:var(--accent-text);">전송</button>
+    </div>
+  </div>
+</div>
+
+<!-- notes history modal -->
+<div class="modal-overlay" id="notesModal" style="align-items:flex-start;padding:12px;overflow-y:auto;">
+  <div class="modal-box" style="max-width:480px;width:100%;max-height:none;margin-top:8px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <h3 style="font-size:16px;">📋 질문 이력</h3>
+      <button type="button" id="notesModalClose" style="padding:4px 10px;font-size:13px;">✕</button>
+    </div>
+    <div id="notesCardPreview" style="font-size:13px;color:var(--text-2);background:var(--surface-2);border-radius:var(--r-md);padding:8px 12px;margin-bottom:12px;"></div>
+    <div id="notesList" style="display:flex;flex-direction:column;gap:10px;max-height:480px;overflow-y:auto;"></div>
+    <div id="notesEmpty" class="empty-state" style="display:none;">아직 질문 이력이 없어요</div>
+  </div>
+</div>
+
+<!-- trend modal -->
+<div class="modal-overlay" id="trendModal" style="align-items:flex-start;padding:12px;overflow-y:auto;">
+  <div class="modal-box" style="max-width:480px;width:100%;max-height:none;margin-top:8px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <h3 style="font-size:16px;">📊 질문 경향 분석</h3>
+      <button type="button" id="trendModalClose" style="padding:4px 10px;font-size:13px;">✕</button>
+    </div>
+    <p class="muted" style="margin-bottom:12px;">지금까지의 질문 이력을 분석해서 어떤 부분을 어려워하는지 파악해줘요.</p>
+    <div id="trendHistory" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;max-height:280px;overflow-y:auto;"></div>
+    <div id="trendLoading" style="display:none;font-size:13px;color:var(--text-3);text-align:center;padding:12px;">⏳ 분석 중...</div>
+    <div id="trendResult" style="display:none;background:var(--surface-2);border-radius:var(--r-md);padding:12px;font-size:14px;line-height:1.7;white-space:pre-wrap;max-height:300px;overflow-y:auto;margin-bottom:10px;"></div>
+    <button type="button" id="trendRunBtn" style="width:100%;border-color:var(--accent);color:var(--accent-text);font-weight:700;">🔍 지금 분석하기</button>
+  </div>
+</div>
+
+<!-- failAll confirm modal: shows list of cards to be failed -->
+<div class="modal-overlay" id="failAllModal">
+  <div class="modal-box" style="max-width:420px;">
+    <h3 style="margin-bottom:8px;">남은 문제 전부 오답 처리</h3>
+    <p class="muted" style="margin-bottom:10px;">아래 문장들이 오답 처리되고 15분 후 복습 스케줄에 추가됩니다.</p>
+    <div id="failAllList" style="max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:16px;"></div>
+    <div class="modal-actions">
+      <button type="button" id="failAllCancel">취소</button>
+      <button type="button" id="failAllConfirm" class="modal-danger">오답 처리 후 종료</button>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="editModal" style="align-items:flex-start;padding:16px;overflow-y:auto;">
   <div class="modal-box" style="max-width:480px;width:100%;max-height:none;">
     <h3 style="margin-bottom:4px;">✏️ 문장 편집</h3>
