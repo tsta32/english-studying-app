@@ -1394,6 +1394,64 @@ function loadApiKeyUI(){
   $('apiKeyStatus').textContent=apiKey?'✓ API 키가 저장되어 있어요':'API 키가 없어요. 입력 후 저장해주세요.';
   $('apiKeyStatus').style.color=apiKey?'var(--success-text)':'var(--text-3)';
 }
+/* ---------- 데이터 백업 / 복원 ---------- */
+on('backupBtn','click',function(){
+  var data={
+    cards:    localStorage.getItem(CARDS_KEY),
+    chapters: localStorage.getItem(CHAPTERS_KEY),
+    settings: localStorage.getItem(SETTINGS_KEY),
+    notes:    localStorage.getItem(NOTES_KEY),
+    trends:   localStorage.getItem(TRENDS_KEY),
+    apikey:   localStorage.getItem(APIKEY_KEY),
+    exported: new Date().toLocaleString('ko-KR')
+  };
+  var json=JSON.stringify(data, null, 2);
+  var blob=new Blob([json], {type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  var d=new Date();
+  a.download='memory-backup-'+d.getFullYear()+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2)+'.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  $('backupStatus').textContent='✓ 백업 파일이 다운로드됐어요';
+  $('backupStatus').style.color='var(--success-text)';
+  setTimeout(function(){$('backupStatus').textContent='';},3000);
+});
+
+on('restoreBtn','click',function(){
+  $('restoreFile').value='';
+  $('restoreFile').click();
+});
+
+$('restoreFile').addEventListener('change',function(e){
+  var file=e.target.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      var data=JSON.parse(ev.target.result);
+      if(!data.cards){
+        $('backupStatus').textContent='❌ 올바른 백업 파일이 아니에요';
+        $('backupStatus').style.color='var(--danger-text)';return;
+      }
+      if(!confirm('현재 데이터가 백업 파일로 교체됩니다. 계속할까요?'))return;
+      if(data.cards)    localStorage.setItem(CARDS_KEY,    data.cards);
+      if(data.chapters) localStorage.setItem(CHAPTERS_KEY, data.chapters);
+      if(data.settings) localStorage.setItem(SETTINGS_KEY, data.settings);
+      if(data.notes)    localStorage.setItem(NOTES_KEY,    data.notes);
+      if(data.trends)   localStorage.setItem(TRENDS_KEY,   data.trends);
+      if(data.apikey)   localStorage.setItem(APIKEY_KEY,   data.apikey);
+      $('backupStatus').textContent='✓ 복원 완료! 앱을 다시 시작합니다...';
+      $('backupStatus').style.color='var(--success-text)';
+      setTimeout(function(){window.location.reload();},1200);
+    }catch(err){
+      $('backupStatus').textContent='❌ 파일 읽기 오류: '+err.message;
+      $('backupStatus').style.color='var(--danger-text)';
+    }
+  };
+  reader.readAsText(file);
+});
+
 on('apiKeySaveBtn','click',function(){
   var val=$('apiKeyInput').value.trim();
   if(!val||!val.startsWith('sk-')){
