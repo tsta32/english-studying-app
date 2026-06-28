@@ -1229,11 +1229,20 @@ function renderDoneCardList(editMode){
       content_.innerHTML=
         '<div style="font-size:14px;font-weight:700;margin-bottom:2px;">'+esc(c.ko)+'</div>'+
         '<div style="font-size:13px;color:var(--text-2);">'+esc(c.en)+'</div>';
-      var rightBadge=missed?'<span class="due-tag ng-badge" style="font-size:11px;flex-shrink:0;">오답</span>':'';
+      var bmBtn=document.createElement('button');bmBtn.type='button';
+      bmBtn.style.cssText='font-size:20px;padding:2px 6px;background:transparent;border:none;flex-shrink:0;cursor:pointer;line-height:1;';
+      bmBtn.textContent=c.bookmarked?'★':'☆';
+      bmBtn.style.color=c.bookmarked?'var(--warning)':'var(--text-3)';
+      (function(c,btn){btn.addEventListener('click',function(){
+        c.bookmarked=!c.bookmarked;saveCards();
+        btn.textContent=c.bookmarked?'★':'☆';
+        btn.style.color=c.bookmarked?'var(--warning)':'var(--text-3)';
+      });})(c,bmBtn);
       var wrap=document.createElement('div');
       wrap.style.cssText='display:flex;align-items:flex-start;gap:10px;';
       wrap.appendChild(cb);wrap.appendChild(content_);
-      if(missed){var bd=document.createElement('span');bd.className='due-tag ng-badge';bd.style.cssText='font-size:11px;flex-shrink:0;';bd.textContent='오답';wrap.appendChild(bd);}
+      if(missed){var bd=document.createElement('span');bd.className='due-tag ng-badge';bd.style.cssText='font-size:11px;flex-shrink:0;margin-top:2px;';bd.textContent='오답';wrap.appendChild(bd);}
+      wrap.appendChild(bmBtn);
       row.appendChild(wrap);
     }
     list.appendChild(row);
