@@ -168,6 +168,12 @@ select{font-family:'Nunito',sans-serif;background:var(--surface-2);color:var(--t
 </style>
 </head>
 <body>
+<!-- 업데이트 알림 배너 -->
+<div id="updateBanner" style="display:none;position:fixed;bottom:max(env(safe-area-inset-bottom),16px);left:50%;transform:translateX(-50%);z-index:9999;background:#2A2724;color:#F0EDE8;border-radius:999px;padding:12px 20px;box-shadow:0 4px 20px rgba(0,0,0,0.3);align-items:center;gap:12px;white-space:nowrap;border:1.5px solid rgba(255,255,255,0.15);font-family:'Nunito',sans-serif;">
+  <span style="font-size:13px;font-weight:700;">🆕 새 버전이 있어요</span>
+  <button type="button" id="updateBtn" style="font-size:12px;padding:6px 14px;background:#2A9D8F;border:none;color:#fff;font-weight:800;border-radius:999px;cursor:pointer;font-family:'Nunito',sans-serif;">업데이트</button>
+  <button type="button" id="updateDismiss" style="font-size:12px;padding:6px 10px;background:transparent;border:none;color:rgba(255,255,255,0.45);font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">나중에</button>
+</div>
 <div id="appOuter" style="position:relative;">
 <div id="app" style="max-width:480px;margin:0 auto;">
 

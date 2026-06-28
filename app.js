@@ -1697,7 +1697,48 @@ document.addEventListener('keydown',function(e){
   if($('checkBtn').style.display==='block'){e.preventDefault();checkAnswer();return;}
 });
 
-if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js').catch(function(){});});}
+// 서비스워커 등록 + 업데이트 감지
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('service-worker.js').then(function(reg){
+
+      // 이미 waiting 중인 새 버전이 있으면 바로 배너 표시
+      if(reg.waiting) showUpdateBanner(reg.waiting);
+
+      // 새 서비스워커가 설치되면 배너 표시
+      reg.addEventListener('updatefound', function(){
+        var newSW = reg.installing;
+        if(!newSW) return;
+        newSW.addEventListener('statechange', function(){
+          if(newSW.state === 'installed' && navigator.serviceWorker.controller){
+            showUpdateBanner(newSW);
+          }
+        });
+      });
+
+    }).catch(function(){});
+
+    // 서비스워커가 교체 활성화되면 페이지 새로고침
+    var refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function(){
+      if(!refreshing){ refreshing=true; window.location.reload(); }
+    });
+  });
+}
+
+function showUpdateBanner(sw){
+  var banner = $('updateBanner');
+  if(!banner) return;
+  banner.style.display = 'flex';
+
+  $('updateBtn').onclick = function(){
+    banner.style.display = 'none';
+    sw.postMessage({type: 'SKIP_WAITING'});
+  };
+  $('updateDismiss').onclick = function(){
+    banner.style.display = 'none';
+  };
+}
 
 /* ---------- init ---------- */
 loadAll();

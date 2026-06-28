@@ -1,4 +1,4 @@
-var CACHE_NAME = 'srs-app-v48';
+var CACHE_NAME = 'srs-app-v49';
 var ASSETS = [
   './index.html',
   './app.js',
@@ -12,7 +12,8 @@ self.addEventListener('install', function(event){
     caches.open(CACHE_NAME).then(function(cache){
       return cache.addAll(ASSETS);
     }).then(function(){
-      return self.skipWaiting();
+      // 새 버전 설치 완료 후 waiting 상태로 대기 (자동 skipWaiting 안 함)
+      // 앱에서 명시적으로 skipWaiting 요청해야 활성화됨
     })
   );
 });
@@ -44,4 +45,11 @@ self.addEventListener('fetch', function(event){
       return cached || network;
     })
   );
+});
+
+// 앱에서 'skipWaiting' 메시지 받으면 즉시 활성화
+self.addEventListener('message', function(event){
+  if(event.data && event.data.type === 'SKIP_WAITING'){
+    self.skipWaiting();
+  }
 });
