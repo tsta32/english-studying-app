@@ -15,6 +15,8 @@ var nextCardId=1,nextChapterId=1;
 var sessionQueue=[],sessionUniqueIds=[],sessionDoneCount=0,streak=0;
 var current=null,hintLevel=0,pendingDiff=null,autoAdvanceToken=0;
 var sessionMissedIds=[],retryQueue=[];
+var sessionCompletedIds=[]; // 정답/오답 확정된 카드 id (완료)
+var sessionSkippedIds=[];   // 오답처리 건너뛴 카드 id
 var currentIsRetry=false; // 현재 풀고 있는 카드가 세션 내 재도전 카드인지 여부
 
 var acSort='added',acShowKo=true,acShowEn=true,acSearch='';
@@ -364,6 +366,7 @@ function startSessionWith(isPractice){
   if(!chosen.length){$('ngFilterInfo').textContent='해당 카드 없음';$('ngFilterInfo').style.color='var(--danger-text)';return;}
   sessionQueue=chosen.map(function(c){return c.id;});sessionUniqueIds=chosen.map(function(c){return c.id;});
   sessionDoneCount=0;streak=0;sessionMissedIds=[];retryQueue=[];currentIsRetry=false;quizMarkedIds={};
+  sessionCompletedIds=[];sessionSkippedIds=[];
   $('setupScreen').style.display='none';$('quizScreen').style.display='block';
   loadNext();
 }
@@ -1281,6 +1284,7 @@ function finalizeCorrect(){
     }
   }
   sessionDoneCount++;
+  if(sessionCompletedIds.indexOf(current.id)===-1) sessionCompletedIds.push(current.id);
   if(cls==='hard'){streak=0;retryQueue.push(current.id);}
   else streak++;
   var big=streak>=3;
@@ -1330,23 +1334,125 @@ on('checkBtn','click',checkAnswer);on('nextBtn','click',loadNext);
 on('markCorrectBtn','click',finalizeCorrect);on('markWrongBtn','click',escalateWrong);
 on('cancelSessionBtn','click',function(){$('cancelModal').classList.add('show');});
 
+// 오답처리하고 건너뛰기 (세션 재출제 없음)
+on('skipFailBtn','click',function(){
+  if(!current)return;
+  var c=current;
+  // ngCount +1 (이 세션에서 첫 번째만)
+  if(sessionMissedIds.indexOf(c.id)===-1) c.ngCount=(c.ngCount||0)+1;
+  sessionMissedIds.push(c.id);
+  sessionSkippedIds.push(c.id);
+  if(sessionCompletedIds.indexOf(c.id)===-1) sessionCompletedIds.push(c.id);
+  // 15분 후 복습 예약
+  c.everAnswered=true;c.stage=0;c.dueAt=now()+FIFTEEN_MIN;
+  saveCards();
+  sessionDoneCount++;
+  streak=0;
+  updateStats();
+  // retryQueue에서 이 카드 제거 (재출제 방지)
+  retryQueue=retryQueue.filter(function(id){return id!==c.id;});
+  var token=++autoAdvanceToken;
+  setTimeout(function(){if(token===autoAdvanceToken)loadNext();},150);
+});
+
+// 테스트 현황 모달
 on('failAllBtn','click',function(){
-  // 바로 모달 표시 (confirm 없음)on('failAllBtn','click',function(){
-  // 남은 카드 목록 보여주고 확인 받기
+  renderTestStatusModal();
+  $('testStatusModal').classList.add('show');
+});
+on('testStatusClose','click',function(){$('testStatusModal').classList.remove('show');});
+
+function renderTestStatusModal(){
+  var cont=$('testStatusContent');cont.innerHTML='';
+
+  // 미완료: 아직 sessionQueue + retryQueue + current (completedIds에 없는 것)
   var remaining=[];
-  if(current) remaining.push(current.id);
-  sessionQueue.forEach(function(id){remaining.push(id);});
+  if(current&&sessionCompletedIds.indexOf(current.id)===-1) remaining.push(current.id);
+  sessionQueue.forEach(function(id){if(remaining.indexOf(id)===-1)remaining.push(id);});
   retryQueue.forEach(function(id){if(remaining.indexOf(id)===-1)remaining.push(id);});
-  var list=$('failAllList');list.innerHTML='';
+
+  // 완료: completedIds
+  var completed=sessionCompletedIds.slice();
+
+  function makeCardRow(id, statusLabel, statusColor){
+    var c=findCard(id);if(!c)return null;
+    var row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:flex-start;gap:8px;padding:10px 12px;background:var(--surface-2);border-radius:var(--r-md);border:1.5px solid var(--border);';
+    var body=document.createElement('div');body.style.flex='1';
+    var missed=sessionMissedIds.indexOf(id)!==-1;
+    var skipped=sessionSkippedIds.indexOf(id)!==-1;
+    var resultTag=skipped?'오답처리':missed?'오답':'정답';
+    var resultColor=missed?'var(--danger-text)':'var(--success-text)';
+    body.innerHTML=
+      '<div style="font-size:13px;font-weight:700;margin-bottom:2px;">'+esc(c.ko)+'</div>'+
+      '<div style="font-size:12px;color:var(--text-2);margin-bottom:4px;">'+esc(c.en)+'</div>'+
+      '<div style="display:flex;gap:5px;flex-wrap:wrap;">'+
+      '<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:'+statusColor+'22;color:'+statusColor+';">'+statusLabel+'</span>'+
+      (statusLabel==='완료'?'<span style="font-size:11px;padding:2px 8px;border-radius:999px;background:var(--surface);color:'+resultColor+';">'+resultTag+'</span>':'')+
+      '</div>';
+    // 버튼들
+    var btns=document.createElement('div');btns.style.cssText='display:flex;flex-direction:column;gap:4px;flex-shrink:0;';
+    // 북마크
+    var bmBtn=document.createElement('button');bmBtn.type='button';bmBtn.className='icon-btn bm'+(c.bookmarked?' on':'');
+    bmBtn.innerHTML=c.bookmarked?'★':'☆';bmBtn.style.fontSize='15px';
+    (function(c,btn){btn.addEventListener('click',function(){c.bookmarked=!c.bookmarked;saveCards();btn.innerHTML=c.bookmarked?'★':'☆';btn.style.color=c.bookmarked?'var(--warning)':'';});})(c,bmBtn);
+    // 질문
+    var askBtn=document.createElement('button');askBtn.type='button';askBtn.className='icon-btn';
+    askBtn.textContent='💬';askBtn.style.fontSize='13px';
+    (function(cid){askBtn.addEventListener('click',function(){$('testStatusModal').classList.remove('show');openAskModal(cid);});})(id);
+    // 이력
+    var noteBtn=document.createElement('button');noteBtn.type='button';noteBtn.className='icon-btn';
+    noteBtn.textContent='📋';noteBtn.style.fontSize='13px';
+    if(notes[id]&&notes[id].length) noteBtn.style.color='var(--accent-text)';
+    (function(cid){noteBtn.addEventListener('click',function(){$('testStatusModal').classList.remove('show');openNotesModal(cid);});})(id);
+    btns.appendChild(bmBtn);btns.appendChild(askBtn);btns.appendChild(noteBtn);
+    row.appendChild(body);row.appendChild(btns);
+    return row;
+  }
+
+  // 미완료 섹션
+  if(remaining.length){
+    var hdr=document.createElement('div');
+    hdr.style.cssText='font-size:12px;font-weight:800;color:var(--warning);text-transform:uppercase;letter-spacing:0.05em;padding:4px 0;';
+    hdr.textContent='미완료 '+remaining.length+'개';
+    cont.appendChild(hdr);
+    remaining.forEach(function(id){var row=makeCardRow(id,'미완료','var(--warning)');if(row)cont.appendChild(row);});
+  }
+
+  // 완료 섹션
+  if(completed.length){
+    var hdr2=document.createElement('div');
+    hdr2.style.cssText='font-size:12px;font-weight:800;color:var(--success-text);text-transform:uppercase;letter-spacing:0.05em;padding:4px 0;margin-top:'+(remaining.length?'14px':'4px')+';';
+    hdr2.textContent='완료 '+completed.length+'개';
+    cont.appendChild(hdr2);
+    completed.forEach(function(id){var row=makeCardRow(id,'완료','var(--success-text)');if(row)cont.appendChild(row);});
+  }
+
+  if(!remaining.length&&!completed.length){
+    cont.innerHTML='<p class="muted" style="text-align:center;padding:20px 0;">카드가 없어요</p>';
+  }
+}
+
+// 미완료 전부 오답처리 후 종료
+on('testStatusFailAll','click',function(){
+  $('testStatusModal').classList.remove('show');
+  var remaining=[];
+  if(current&&sessionCompletedIds.indexOf(current.id)===-1) remaining.push(current.id);
+  sessionQueue.forEach(function(id){if(remaining.indexOf(id)===-1)remaining.push(id);});
+  retryQueue.forEach(function(id){if(remaining.indexOf(id)===-1)remaining.push(id);});
+  var now_=now();
   remaining.forEach(function(id){
     var c=findCard(id);if(!c)return;
-    var row=document.createElement('div');
-    row.style.cssText='background:var(--surface-2);border-radius:var(--r-md);padding:8px 12px;font-size:13px;';
-    row.innerHTML='<div style="font-weight:700;">'+esc(c.ko)+'</div><div style="color:var(--text-2);font-size:12px;">'+esc(c.en)+'</div>';
-    list.appendChild(row);
+    if(sessionMissedIds.indexOf(id)===-1) c.ngCount=(c.ngCount||0)+1;
+    sessionMissedIds.push(id);
+    sessionSkippedIds.push(id);
+    sessionCompletedIds.push(id);
+    c.everAnswered=true;c.stage=0;c.dueAt=now_+FIFTEEN_MIN;
   });
-  $('failAllModal').classList.add('show');
+  saveCards();sessionQueue=[];retryQueue=[];current=null;
+  finishSession();
 });
+
 on('failAllCancel','click',function(){$('failAllModal').classList.remove('show');});
 on('failAllConfirm','click',function(){
   $('failAllModal').classList.remove('show');

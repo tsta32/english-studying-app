@@ -387,7 +387,7 @@ select{font-family:'Nunito',sans-serif;background:var(--surface-2);color:var(--t
   <div id="quizScreen" style="display:none;">
     <div class="quiz-top">
       <button type="button" class="cancel-link" id="cancelSessionBtn">← 취소하고 홈으로</button>
-      <button type="button" id="failAllBtn" style="font-size:12px;padding:6px 10px;color:var(--danger);border-color:var(--danger);">나머지 전부 오답처리 후 종료</button>
+      <button type="button" id="failAllBtn" style="font-size:12px;padding:6px 10px;color:var(--accent-text);border-color:var(--accent);">📋 테스트 현황</button>
     </div>
     <div class="stats-bar">
       <div class="stat"><div class="lbl">정답 처리</div><div class="val" id="progressCount">0/0</div></div>
@@ -424,6 +424,8 @@ select{font-family:'Nunito',sans-serif;background:var(--surface-2);color:var(--t
         <button id="checkBtn" style="font-weight:500;">확인</button>
         <button id="nextBtn" style="display:none;font-weight:500;">다음 →</button>
       </div>
+      <!-- 오답처리 버튼 -->
+      <button type="button" id="skipFailBtn" style="width:100%;margin-top:10px;font-size:13px;color:var(--danger);border-color:var(--danger);padding:8px;">✕ 오답 처리하고 건너뛰기</button>
     </div>
     <div class="footer-hint">Enter로 확인 · 다음 카드로 이동</div>
   </div>
@@ -520,6 +522,20 @@ select{font-family:'Nunito',sans-serif;background:var(--surface-2);color:var(--t
     <div id="trendLoading" style="display:none;font-size:13px;color:var(--text-3);text-align:center;padding:12px;">⏳ 분석 중...</div>
     <div id="trendResult" style="display:none;background:var(--surface-2);border-radius:var(--r-md);padding:12px;font-size:14px;line-height:1.7;white-space:pre-wrap;max-height:300px;overflow-y:auto;margin-bottom:10px;"></div>
     <button type="button" id="trendRunBtn" style="width:100%;border-color:var(--accent);color:var(--accent-text);font-weight:700;">🔍 지금 분석하기</button>
+  </div>
+</div>
+
+<!-- test status modal -->
+<div class="modal-overlay" id="testStatusModal" style="align-items:flex-start;padding:12px;overflow-y:auto;">
+  <div class="modal-box" style="max-width:480px;width:100%;max-height:none;margin-top:8px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <h3 style="font-size:16px;">📋 테스트 현황</h3>
+      <button type="button" id="testStatusClose" style="padding:4px 10px;font-size:13px;">✕</button>
+    </div>
+    <div id="testStatusContent" style="display:flex;flex-direction:column;gap:14px;max-height:540px;overflow-y:auto;"></div>
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button type="button" id="testStatusFailAll" style="flex:1;color:var(--danger);border-color:var(--danger);font-weight:700;">미완료 전부 오답처리 후 종료</button>
+    </div>
   </div>
 </div>
 
